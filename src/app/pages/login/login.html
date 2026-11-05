@@ -1,0 +1,108 @@
+
+<div class="login-container">
+
+  <!-- Formas decorativas del fondo -->
+  <div class="background-shape shape-top"></div>
+  <div class="background-shape shape-bottom"></div>
+
+
+
+  <!-- Contenido principal -->
+  <main class="login-content">
+
+    <!-- Logo -->
+    <img
+      src="/img/logo-bangtanole.png"
+      alt="Logo Bangtan Olé"
+      class="brand-logo"
+    />
+
+    <!-- Títulos -->
+    <h2>Iniciar sesión</h2>
+
+    <!-- Formulario -->
+    <form (ngSubmit)="login()">
+
+      <!-- Correo electrónico -->
+      <div class="input-group">
+        <!-- <span class="input-icon"></span> -->
+
+        <input
+          type="email"
+          name="email"
+          [(ngModel)]="email"
+          placeholder="Correo electrónico"
+          autocomplete="email"
+          required
+        />
+      </div>
+
+      <!-- Contraseña -->
+      <div class="input-group">
+        <!-- <span class="input-icon"></span> -->
+
+        <input
+          type="password"
+          name="password"
+          [(ngModel)]="password"
+          placeholder="Contraseña"
+          autocomplete="current-password"
+          required
+        />
+
+        <!-- <span class="password-icon"></span> -->
+      </div>
+
+      <!-- Mensaje de error -->
+      <p class="error" *ngIf="errorMessage">
+        {{ errorMessage }}
+      </p>
+
+      <!-- Botón de acceso -->
+      <button type="submit" [disabled]="loading">
+        {{ loading ? 'Entrando...' : 'Iniciar sesión' }}
+      </button>
+
+    </form>
+
+    <!-- Recordarme -->
+    <div class="login-options">
+      <label>
+        <input type="checkbox" />
+        Recordarme
+      </label>
+    </div>
+
+    <!-- Recuperar contraseña -->
+    <div class="forgot-password">
+      <a routerLink="/auth/login">
+        ¿Has olvidado tu contraseña?
+      </a>
+    </div>
+
+
+    <!-- Separador -->
+    <!-- <div class="separator">
+      <span></span>
+      <b>o</b>
+      <span></span>
+    </div> -->
+
+    <!-- Espacios reservados para iconos sociales -->
+    <!-- <div class="social-login">
+
+      <div class="social-icon google" title="Google"></div>
+
+      <div class="social-icon apple" title="Apple"></div>
+
+      <div class="social-icon spotify" title="Spotify"></div>
+
+    </div> -->
+
+    <!-- Crear cuenta -->
+    <a class="create-account" routerLink="/auth/register">
+      Crear cuenta
+    </a>
+
+  </main>
+</div>

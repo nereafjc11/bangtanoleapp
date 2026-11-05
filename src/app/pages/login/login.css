@@ -1,0 +1,601 @@
+
+/* =========================================
+   CONFIGURACIÓN GENERAL
+========================================= */
+
+:host {
+  display: block;
+  width: 100%;
+  min-height: 100vh;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+/* =========================================
+   FONDO PRINCIPAL
+========================================= */
+
+.login-container {
+  position: relative;
+  width: 100%;
+  min-height: 100vh;
+  min-height: 100dvh;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  overflow: hidden;
+  padding: 25px 20px;
+
+  font-family: 'Nunito Sans', sans-serif;
+
+  background:
+    radial-gradient(
+      ellipse at 50% 45%,
+      #fffaff 0%,
+      transparent 72%
+    ),
+    linear-gradient(
+      135deg,
+      #fbf5ff,
+      #f0ddff,
+      #f8edff
+    );
+}
+
+/* =========================================
+   FORMAS DECORATIVAS
+========================================= */
+
+.background-shape {
+  position: absolute;
+  z-index: 0;
+  pointer-events: none;
+  opacity: .85;
+}
+
+.shape-top {
+  width: 340px;
+  height: 210px;
+
+  top: -110px;
+  left: -110px;
+
+  background: #e8cfff;
+
+  border-radius: 45% 55% 65% 35%;
+  transform: rotate(-25deg);
+}
+
+.shape-bottom {
+  width: 390px;
+  height: 180px;
+
+  bottom: -115px;
+  right: -110px;
+
+  background: #e6c8ff;
+
+  border-radius: 60% 40% 35% 65%;
+  transform: rotate(-20deg);
+}
+
+/* =========================================
+   CORAZÓN DECORATIVO
+========================================= */
+
+.bottom-decoration {
+  position: absolute;
+
+  right: 7%;
+  bottom: 7%;
+
+  z-index: 0;
+
+  color: #bd73f5;
+  font-size: 48px;
+  font-weight: 400;
+
+  transform: rotate(-15deg);
+
+  pointer-events: none;
+  opacity: .8;
+}
+
+/* =========================================
+   CONTENIDO PRINCIPAL
+========================================= */
+
+.login-content {
+  position: relative;
+  z-index: 1;
+
+  width: 100%;
+  max-width: 540px;
+
+  margin: auto;
+  padding: 15px 25px;
+
+  text-align: center;
+}
+
+/* =========================================
+   LOGO
+========================================= */
+
+.brand-logo {
+  display: block;
+
+  width: 250px;
+  height: auto;
+
+  object-fit: contain;
+
+  margin: 0 auto;
+}
+
+/* =========================================
+   TÍTULOS
+========================================= */
+
+.login-content h1 {
+  font-family: 'Chewy', cursive;
+  font-size: 48px;
+  font-weight: 400;
+  color: #75449b;
+  margin: 10px 0 20px;
+  text-align: center;
+}
+
+.login-content h2 {
+  color: #321b4d;
+
+  font-family: 'Nunito Sans', sans-serif;
+
+  font-size: 22px;
+  font-weight: 800;
+
+  margin: 0 0 23px;
+}
+
+/* =========================================
+   FORMULARIO
+========================================= */
+
+.login-content form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+
+  width: 100%;
+  max-width: 500px;
+
+  margin: 0 auto;
+}
+
+/* =========================================
+   CAMPOS DE ENTRADA
+========================================= */
+
+.input-group {
+  height: 51px;
+
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  padding: 0 15px;
+
+  background: rgba(255, 255, 255, .65);
+
+  border: 1px solid #decaf2;
+  border-radius: 13px;
+
+  transition: .2s;
+}
+
+.input-group:focus-within {
+  border-color: #9462bd;
+  background: #fff;
+
+  box-shadow: 0 0 0 3px rgba(148, 98, 189, .12);
+}
+
+.input-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 20px;
+
+  color: #47246b;
+  font-size: 18px;
+}
+
+.input-group input {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+
+  border: none;
+  outline: none;
+
+  background: transparent;
+
+  color: #38234f;
+
+  font-family: 'Nunito Sans', sans-serif;
+  font-size: 14px;
+}
+
+.input-group input::placeholder {
+  color: #937fa9;
+}
+
+.password-icon {
+  color: #634183;
+  font-size: 16px;
+}
+
+/* =========================================
+   BOTÓN INICIAR SESIÓN
+========================================= */
+
+.login-content form button {
+  height: 49px;
+
+  margin-top: 3px;
+
+  border: none;
+  border-radius: 14px;
+
+  background: linear-gradient(
+    100deg,
+    #843c9d,
+    #54266f
+  );
+
+  color: white;
+
+  font-family: 'Nunito Sans', sans-serif;
+  font-size: 14px;
+  font-weight: 800;
+
+  cursor: pointer;
+
+  transition: .25s;
+}
+
+.login-content form button:hover:not(:disabled) {
+  transform: translateY(-2px);
+
+  box-shadow: 0 7px 18px rgba(82, 38, 111, .22);
+}
+
+.login-content form button:active:not(:disabled) {
+  transform: scale(.98);
+}
+
+.login-content form button:disabled {
+  opacity: .6;
+  cursor: not-allowed;
+}
+
+/* =========================================
+   MENSAJE DE ERROR
+========================================= */
+
+.error {
+  color: #bd3152;
+  font-size: 13px;
+
+  background: #fff0f3;
+  border: 1px solid #ffd5df;
+
+  padding: 9px;
+  border-radius: 10px;
+
+  margin: 2px 0;
+}
+
+/* =========================================
+   RECORDARME
+========================================= */
+
+.login-options {
+  width: 100%;
+  max-width: 500px;
+
+  margin: 9px auto 0;
+
+  text-align: left;
+
+  color: #563875;
+  font-size: 13px;
+}
+
+.login-options label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  cursor: pointer;
+}
+
+.login-options input {
+  accent-color: #714092;
+  margin: 0;
+}
+
+/* =========================================
+   RECUPERAR CONTRASEÑA
+========================================= */
+
+.forgot-password {
+  margin-top: 15px;
+  margin-bottom: 15px;
+  font-size: 13px;
+}
+
+.forgot-password a {
+  color: #543276;
+
+  font-weight: 700;
+  text-decoration: underline;
+}
+
+/* =========================================
+   SEPARADOR
+========================================= */
+
+.separator {
+  width: 100%;
+  max-width: 500px;
+
+  margin: 18px auto 14px;
+
+  display: flex;
+  align-items: center;
+  gap: 13px;
+
+  color: #74449b;
+}
+
+.separator span {
+  height: 1px;
+  flex: 1;
+
+  background: #dfcbed;
+}
+
+.separator b {
+  font-size: 12px;
+  font-weight: 500;
+}
+
+/* =========================================
+   HUECOS PARA ICONOS SOCIALES
+========================================= */
+
+.social-login {
+  width: 100%;
+  max-width: 430px;
+
+  margin: 0 auto 14px;
+
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+}
+
+.social-icon {
+  flex: 1;
+
+  height: 47px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: rgba(255, 255, 255, .6);
+
+  border: 1px solid #decaf2;
+  border-radius: 13px;
+}
+
+/* =========================================
+   CREAR CUENTA
+========================================= */
+
+.create-account {
+  display: block;
+
+  width: 100%;
+  max-width: 430px;
+
+  margin: 0 auto;
+  padding: 12px;
+
+  border: 1px solid #a77acb;
+  border-radius: 25px;
+
+  color: #49266b;
+
+  text-decoration: none;
+
+  font-size: 14px;
+  font-weight: 800;
+
+  transition: .2s;
+}
+
+.create-account:hover {
+  background: #eee0fa;
+  border-color: #8651b4;
+}
+
+/* =========================================
+   SELECCIÓN Y CURSORES
+========================================= */
+
+.login-container {
+  cursor: default;
+}
+
+.login-container h1,
+.login-container h2,
+.login-container p,
+.login-container label,
+.login-container .separator,
+.login-container .brand-logo,
+.login-container .social-icon {
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.login-container input {
+  cursor: text;
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+.login-container button,
+.login-container a {
+  cursor: pointer;
+}
+
+/* =========================================
+   TABLETS
+========================================= */
+
+@media (max-width: 768px) {
+
+  .login-content {
+    max-width: 480px;
+  }
+
+  .brand-logo {
+    width: 145px;
+    height: 115px;
+  }
+
+  .login-content h1 {
+    font-size: 34px;
+  }
+
+  .login-content form,
+  .login-options,
+  .separator {
+    max-width: 100%;
+  }
+}
+
+/* =========================================
+   MÓVILES
+========================================= */
+
+@media (max-width: 600px) {
+
+  .login-container {
+    padding: 20px 15px;
+    overflow-y: auto;
+  }
+
+  .login-content {
+    max-width: 420px;
+    padding: 10px;
+  }
+
+  .brand-logo {
+    width: 125px;
+    height: 100px;
+  }
+
+  .login-content h1 {
+    font-size: 30px;
+    margin-bottom: 13px;
+  }
+
+  .login-content h2 {
+    font-size: 19px;
+    margin-bottom: 18px;
+  }
+
+  .input-group {
+    height: 47px;
+  }
+
+  .login-content form button {
+    height: 46px;
+  }
+
+  .login-content form,
+  .login-options,
+  .separator,
+  .create-account,
+  .social-login {
+    max-width: 100%;
+  }
+
+  .bottom-decoration {
+    right: 4%;
+    bottom: 3%;
+    font-size: 35px;
+  }
+}
+
+/* =========================================
+   MÓVILES PEQUEÑOS
+========================================= */
+
+@media (max-width: 380px) {
+
+  .brand-logo {
+    width: 105px;
+    height: 85px;
+  }
+
+  .login-content h1 {
+    font-size: 27px;
+  }
+
+  .login-content h2 {
+    font-size: 17px;
+  }
+
+  .login-content {
+    padding: 5px;
+  }
+}
+
+/* =========================================
+   PANTALLAS DE POCA ALTURA
+========================================= */
+
+@media (min-width: 601px) and (max-height: 720px) {
+
+  .login-container {
+    align-items: flex-start;
+    overflow-y: auto;
+  }
+
+  .login-content {
+    margin: 10px auto;
+  }
+
+  .brand-logo {
+    height: 100px;
+  }
+
+  .login-content h1 {
+    font-size: 32px;
+    margin-bottom: 10px;
+  }
+
+  .login-content h2 {
+    margin-bottom: 15px;
+  }
+}

@@ -1,0 +1,64 @@
+<div class="register-container">
+  <div class="register-card">
+
+    <h1>Únete a Bangtanole 💜</h1>
+
+    <p class="subtitle">
+      Crea tu cuenta y forma parte de nuestra comunidad ARMY
+    </p>
+
+    <form (ngSubmit)="registrarse()">
+
+      <label>Nombre de usuario</label>
+      <input
+        type="text"
+        name="nombre"
+        [(ngModel)]="nombre"
+        placeholder="Tu nombre"
+        required
+      >
+
+      <label>Correo electrónico</label>
+      <input
+        type="email"
+        name="email"
+        [(ngModel)]="email"
+        placeholder="Tu correo electrónico"
+        required
+      >
+
+      <label>Contraseña</label>
+      <input
+        type="password"
+        name="password"
+        [(ngModel)]="password"
+        placeholder="Crea una contraseña"
+        required
+      >
+
+      <label>Confirmar contraseña</label>
+      <input
+        type="password"
+        name="confirmPassword"
+        [(ngModel)]="confirmPassword"
+        placeholder="Repite tu contraseña"
+        required
+      >
+
+      <button type="submit" [disabled]="cargando">
+        {{ cargando ? 'Creando cuenta...' : 'Crear cuenta 💜' }}
+      </button>
+
+      <p class="mensaje" *ngIf="mensaje">
+        {{ mensaje }}
+      </p>
+
+    </form>
+
+    <p class="login-link">
+      ¿Ya tienes cuenta?
+      <a routerLink="/auth/login">Inicia sesión</a>
+    </p>
+
+  </div>
+</div>
