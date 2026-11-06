@@ -2,13 +2,33 @@
 <div class="home-container">
 
   <header class="home-header">
-    <h1>Bangtanole 💜</h1>
-    <button (click)="cerrarSesion()">Cerrar sesión</button>
+
+    <h1>Bangtan Olé 💜</h1>
+
+    <div class="header-buttons">
+
+      <button
+        type="button"
+        class="profile-button"
+        (click)="irAlPerfil()"
+      >
+        Mi perfil 💜
+      </button>
+
+      <button
+        type="button"
+        (click)="cerrarSesion()"
+      >
+        Cerrar sesión
+      </button>
+
+    </div>
+
   </header>
 
   <main class="welcome-card">
 
-    <h2>¡Bienvenida a Bangtanole! 💜</h2>
+    <h2>¡Bienvenida a Bangtan Olé! 💜</h2>
 
     <p>Tu pequeño rincón del universo ARMY.</p>
 
@@ -17,12 +37,16 @@
     </p>
 
     <div class="coming-soon">
+
       <h3>¡Esto acaba de empezar!</h3>
+
       <p>
         Estamos preparando un espacio especial para todas las ARMY.
         Muy pronto encontrarás muchas cosas por descubrir.
       </p>
+
       <span>💜 BTS FOREVER 💜</span>
+
     </div>
 
   </main>

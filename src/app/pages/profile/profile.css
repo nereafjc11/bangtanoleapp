@@ -1,0 +1,260 @@
+
+.profile-page {
+  min-height: 100vh;
+  padding: 35px 20px;
+  box-sizing: border-box;
+  background: linear-gradient(135deg, #eee3ff, #d8c0fa, #f7efff);
+}
+
+.profile-card {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 35px;
+  background: #ffffff;
+  border-radius: 25px;
+  box-shadow: 0 10px 35px rgba(80, 35, 120, 0.12);
+}
+
+.profile-header {
+  text-align: center;
+  margin-bottom: 35px;
+}
+
+.back-button {
+  display: block;
+  margin-bottom: 25px;
+  padding: 10px 17px;
+  border: none;
+  border-radius: 20px;
+  background: #f1e7ff;
+  color: #7544ad;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.back-button:hover {
+  background: #e4d2ff;
+}
+
+.avatar-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.avatar-placeholder {
+  width: 120px;
+  height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 5px solid #eee3ff;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #d8c0fa, #eee3ff);
+}
+
+.avatar-placeholder span {
+  font-size: 55px;
+}
+
+.avatar-label {
+  color: #7544ad;
+  font-size: 13px;
+  font-weight: bold;
+}
+
+.profile-header h1 {
+  color: #7544ad;
+  font-size: 29px;
+  margin-bottom: 10px;
+}
+
+.profile-header p {
+  color: #777;
+  line-height: 1.6;
+}
+
+.profile-section {
+  padding: 25px;
+  background: #faf7ff;
+  border-radius: 18px;
+}
+
+.profile-section h2 {
+  color: #7544ad;
+  margin-top: 0;
+  margin-bottom: 25px;
+  font-size: 21px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 22px;
+}
+
+.form-group label {
+  color: #7544ad;
+  font-weight: bold;
+  font-size: 14px;
+}
+
+.form-group input,
+.form-group textarea {
+  width: 100%;
+  padding: 13px 15px;
+  box-sizing: border-box;
+  border: 1px solid #dfd0f3;
+  border-radius: 12px;
+  background: #ffffff;
+  color: #444;
+  font-family: inherit;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
+  border-color: #a77bd6;
+  box-shadow: 0 0 0 3px rgba(167, 123, 214, 0.12);
+}
+
+.form-group input:disabled {
+  background: #f0edf4;
+  color: #777;
+  cursor: not-allowed;
+}
+
+.form-group textarea {
+  resize: vertical;
+  min-height: 100px;
+}
+
+.form-group small {
+  color: #888;
+  font-size: 12px;
+}
+
+.save-button {
+  display: block;
+  width: 100%;
+  margin-top: 25px;
+  padding: 15px;
+  border: none;
+  border-radius: 15px;
+  background: #7544ad;
+  color: #ffffff;
+  font-size: 15px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.2s;
+}
+
+.save-button:hover:not(:disabled) {
+  background: #60358f;
+  transform: translateY(-2px);
+}
+
+.save-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.message,
+.error-message,
+.success-message {
+  padding: 14px;
+  margin: 15px 0;
+  border-radius: 12px;
+  text-align: center;
+}
+
+.message {
+  background: #f5edff;
+  color: #7544ad;
+}
+
+.error-message {
+  background: #ffe9e9;
+  color: #b52d2d;
+}
+
+.success-message {
+  background: #e8f8ed;
+  color: #287a43;
+}
+
+@media (max-width: 600px) {
+  .profile-page {
+    padding: 18px 12px;
+  }
+
+  .profile-card {
+    padding: 22px 17px;
+  }
+
+  .profile-header h1 {
+    font-size: 24px;
+  }
+
+  .profile-section {
+    padding: 18px 14px;
+  }
+}
+
+.avatar-image {
+  width: 130px;
+  height: 130px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border: 5px solid #eee3ff;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #d8c0fa, #eee3ff);
+}
+
+.avatar-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.avatar-image span {
+  font-size: 55px;
+}
+
+.avatar-upload-button {
+  display: inline-block;
+  padding: 10px 18px;
+  border-radius: 20px;
+  background: #f1e7ff;
+  color: #7544ad;
+  font-size: 13px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.avatar-upload-button:hover {
+  background: #e4d2ff;
+}
+
+.upload-button {
+  padding: 11px 18px;
+  border: none;
+  border-radius: 20px;
+  background: #7544ad;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.upload-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+

@@ -1,8 +1,11 @@
+
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { SupabaseService } from '../../services/supabase.service';
+import { OnboardingService } from '../../services/onboarding.service';
+
 @Component({
   selector: 'app-login',
   standalone: true,
@@ -12,14 +15,13 @@ import { SupabaseService } from '../../services/supabase.service';
 })
 export class Login {
   private supabase = inject(SupabaseService);
+  private onboardingService = inject(OnboardingService);
+  private router = inject(Router);
 
   email = '';
   password = '';
-
   errorMessage = '';
   loading = false;
-
-  private router = inject(Router);
 
   async login() {
     this.errorMessage = '';
@@ -42,12 +44,19 @@ export class Login {
         return;
       }
 
-      console.log('¡Sesión iniciada correctamente! 💜');
-      await this.router.navigate(['/home']);
+      // Comprobar si la usuaria ya terminó su configuración inicial
+      const completed = await this.onboardingService.isOnboardingCompleted();
+
+      if (completed) {
+        await this.router.navigate(['/home']);
+      } else {
+        await this.router.navigate(['/preferences']);
+      }
 
     } catch (error) {
-      this.errorMessage = 'No se pudo conectar. Inténtalo de nuevo.';
-      console.error(error);
+      console.error('Error al iniciar sesión:', error);
+      this.errorMessage = 'No se pudo iniciar sesión. Inténtalo de nuevo.';
+
     } finally {
       this.loading = false;
     }

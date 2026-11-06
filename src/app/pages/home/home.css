@@ -84,3 +84,33 @@
     font-size: 24px;
   }
 }
+
+
+.header-buttons {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.home-header .profile-button {
+  background: #ffffff;
+  color: #7544ad;
+  border: 2px solid #7544ad;
+}
+
+.home-header .profile-button:hover {
+  background: #f1e7ff;
+}
+
+@media (max-width: 600px) {
+  .home-header {
+    flex-wrap: wrap;
+    gap: 15px;
+  }
+
+  .header-buttons {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+}
+

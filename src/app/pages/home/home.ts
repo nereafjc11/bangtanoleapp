@@ -18,17 +18,23 @@ export class Home implements OnInit {
 
   email = '';
 
-async ngOnInit() {
-  const { data } = await this.supabase.client.auth.getSession();
+  async ngOnInit() {
+    const { data } = await this.supabase.client.auth.getSession();
 
-  if (!data.session) {
-    await this.router.navigate(['/auth/login']);
-    return;
+    if (!data.session) {
+      await this.router.navigate(['/auth/login']);
+      return;
+    }
+
+    this.email = data.session.user.email ?? '';
   }
 
-  this.email = data.session.user.email ?? '';
-}
+  // Ir al perfil
+  async irAlPerfil() {
+    await this.router.navigate(['/profile']);
+  }
 
+  // Cerrar sesión
   async cerrarSesion() {
     const { error } = await this.supabase.client.auth.signOut();
 

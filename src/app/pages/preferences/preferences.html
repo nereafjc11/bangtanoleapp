@@ -1,0 +1,98 @@
+
+<main class="preferences-page">
+
+  <section class="preferences-card">
+
+    <div class="preferences-header">
+      <span class="heart">💜</span>
+
+      <h1>¡Bienvenida a Bangtan Olé!</h1>
+
+      <p>
+        Queremos conocerte un poquito mejor.
+        Selecciona los temas que más te gustan
+        para personalizar tu experiencia.
+      </p>
+    </div>
+
+    @if (loading) {
+
+      <div class="message">
+        Cargando tus preferencias...
+      </div>
+
+    } @else {
+
+  
+      <div class="categories-section">
+
+        <h2>¿Qué te interesa?</h2>
+
+        <p class="selection-info">
+          Puedes seleccionar tantas categorías como quieras.
+        </p>
+
+        <div class="categories-grid">
+
+          @for (category of categories; track category.id) {
+
+            <button
+              type="button"
+              class="category-option"
+              [class.selected]="isSelected(category.id)"
+              [attr.aria-pressed]="isSelected(category.id)"
+              (click)="toggleCategory(category.id)"
+            >
+
+              <span class="category-name">
+                {{ category.name }}
+              </span>
+
+              <span class="category-check">
+                {{ isSelected(category.id) ? '✓' : '+' }}
+              </span>
+
+            </button>
+
+          } @empty {
+
+            <p class="message">
+              No se han encontrado categorías.
+            </p>
+
+          }
+
+        </div>
+
+        <p class="selected-count">
+          {{ selectedCategories.length }} categorías seleccionadas
+        </p>
+
+      </div>
+
+      @if (errorMessage) {
+        <div class="error-message">
+          {{ errorMessage }}
+        </div>
+      }
+
+      @if (successMessage) {
+        <div class="success-message">
+          {{ successMessage }}
+        </div>
+      }
+
+      <button
+        type="button"
+        class="save-button"
+        [disabled]="saving"
+        (click)="savePreferences()"
+      >
+        {{ saving ? 'Guardando...' : 'Guardar mis preferencias 💜' }}
+      </button>
+
+    }
+
+  </section>
+
+</main>

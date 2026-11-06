@@ -17,12 +17,26 @@ export const routes: Routes = [
         .then(m => m.Register)
   },
 
- {
-  path: 'home',
-  loadComponent: () =>
-    import('./pages/home/home')
-      .then(m => m.Home)
-},
+  {
+    path: 'preferences',
+    loadComponent: () =>
+      import('./pages/preferences/preferences')
+        .then(m => m.Preferences)
+  },
+
+  {
+    path: 'profile',
+    loadComponent: () =>
+      import('./pages/profile/profile')
+        .then(m => m.Profile)
+  },
+
+  {
+    path: 'home',
+    loadComponent: () =>
+      import('./pages/home/home')
+        .then(m => m.Home)
+  },
 
   {
     path: '',
