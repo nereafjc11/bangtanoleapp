@@ -1,108 +1,204 @@
 
 <div class="login-container">
 
-  <!-- Formas decorativas del fondo -->
   <div class="background-shape shape-top"></div>
   <div class="background-shape shape-bottom"></div>
 
+  <main class="login-layout">
 
+    <!-- LOGO -->
+    <section class="brand-section">
+      <img
+        src="/img/logo-bangtanole.png"
+        alt="Logo Bangtan Olé"
+        class="brand-logo"
+      />
+    </section>
 
-  <!-- Contenido principal -->
-  <main class="login-content">
+    <!-- COLUMNA DEL FORMULARIO -->
+    <section class="form-section">
 
-    <!-- Logo -->
-    <img
-      src="/img/logo-bangtanole.png"
-      alt="Logo Bangtan Olé"
-      class="brand-logo"
-    />
+      <div class="login-card">
 
-    <!-- Títulos -->
-    <h2>Iniciar sesión</h2>
+        <!-- CABECERA COMPARTIDA -->
+        <div class="form-header">
+          <h2>
+            {{ mode === 'login' ? 'Iniciar sesión' : 'Crear cuenta' }}
+          </h2>
 
-    <!-- Formulario -->
-    <form (ngSubmit)="login()">
+          <p>
+            {{ mode === 'login'
+              ? '¡Qué alegría tenerte de vuelta! 💜'
+              : 'Únete a nuestra pequeña comunidad ARMY 💜' }}
+          </p>
+        </div>
 
-      <!-- Correo electrónico -->
-      <div class="input-group">
-        <!-- <span class="input-icon"></span> -->
+        <!-- REGISTRO -->
+        <form
+          *ngIf="mode === 'register'"
+          class="auth-form register-form"
+          (ngSubmit)="registrarse()"
+        >
 
-        <input
-          type="email"
-          name="email"
-          [(ngModel)]="email"
-          placeholder="Correo electrónico"
-          autocomplete="email"
-          required
-        />
+          <div class="form-fields">
+
+            <div class="field">
+              <label for="nombre">Nombre de usuario</label>
+              <div class="input-group">
+                <input
+                  id="nombre"
+                  type="text"
+                  name="nombre"
+                  [(ngModel)]="nombre"
+                  placeholder="Tu nombre de usuario"
+                  autocomplete="username"
+                  required
+                />
+              </div>
+            </div>
+
+            <div class="field">
+              <label for="email-register">Correo electrónico</label>
+              <div class="input-group">
+                <input
+                  id="email-register"
+                  type="email"
+                  name="email"
+                  [(ngModel)]="email"
+                  placeholder="Correo electrónico"
+                  autocomplete="email"
+                  required
+                />
+              </div>
+            </div>
+
+            <div class="field">
+              <label for="password-register">Contraseña</label>
+              <div class="input-group">
+                <input
+                  id="password-register"
+                  type="password"
+                  name="password"
+                  [(ngModel)]="password"
+                  placeholder="Mínimo 6 caracteres"
+                  autocomplete="new-password"
+                  required
+                />
+              </div>
+            </div>
+
+            <div class="field">
+              <label for="confirmPassword">Confirmar contraseña</label>
+              <div class="input-group">
+                <input
+                  id="confirmPassword"
+                  type="password"
+                  name="confirmPassword"
+                  [(ngModel)]="confirmPassword"
+                  placeholder="Repite tu contraseña"
+                  autocomplete="new-password"
+                  required
+                />
+              </div>
+            </div>
+
+          </div>
+
+          <div class="form-actions">
+            <p class="error" *ngIf="mensaje">{{ mensaje }}</p>
+
+            <button type="submit" [disabled]="loading">
+              {{ loading ? 'Creando cuenta...' : 'Crear cuenta 💜' }}
+            </button>
+          </div>
+
+        </form>
+
+        <!-- INICIO DE SESIÓN -->
+        <form
+          *ngIf="mode === 'login'"
+          class="auth-form login-form"
+          (ngSubmit)="login()"
+        >
+
+          <div class="form-fields">
+
+            <div class="field">
+              <label for="email-login">Correo electrónico</label>
+              <div class="input-group">
+                <input
+                  id="email-login"
+                  type="email"
+                  name="email"
+                  [(ngModel)]="email"
+                  placeholder="Correo electrónico"
+                  autocomplete="email"
+                  required
+                />
+              </div>
+            </div>
+
+            <div class="field">
+              <label for="password-login">Contraseña</label>
+              <div class="input-group">
+                <input
+                  id="password-login"
+                  type="password"
+                  name="password"
+                  [(ngModel)]="password"
+                  placeholder="Contraseña"
+                  autocomplete="current-password"
+                  required
+                />
+              </div>
+            </div>
+
+            <div class="login-options">
+              <label>
+                <input type="checkbox" />
+                Recordarme
+              </label>
+            </div>
+
+            <div class="forgot-password">
+              <a routerLink="/auth/login">
+                ¿Has olvidado tu contraseña?
+              </a>
+            </div>
+
+          </div>
+
+          <div class="form-actions">
+            <p class="error" *ngIf="errorMessage">
+              {{ errorMessage }}
+            </p>
+
+            <button type="submit" [disabled]="loading">
+              {{ loading ? 'Entrando...' : 'Iniciar sesión 💜' }}
+            </button>
+          </div>
+
+        </form>
+
+        <!-- PIE COMPARTIDO -->
+        <div class="register-link" *ngIf="mode === 'login'">
+          <p>¿Todavía no tienes cuenta?</p>
+          <a class="create-account" routerLink="/auth/register">
+            Crear cuenta
+          </a>
+        </div>
+
+        <div class="register-link" *ngIf="mode === 'register'">
+          <p>¿Ya tienes una cuenta?</p>
+          <a class="create-account" routerLink="/auth/login">
+            Iniciar sesión
+          </a>
+        </div>
+
       </div>
 
-      <!-- Contraseña -->
-      <div class="input-group">
-        <!-- <span class="input-icon"></span> -->
-
-        <input
-          type="password"
-          name="password"
-          [(ngModel)]="password"
-          placeholder="Contraseña"
-          autocomplete="current-password"
-          required
-        />
-
-        <!-- <span class="password-icon"></span> -->
-      </div>
-
-      <!-- Mensaje de error -->
-      <p class="error" *ngIf="errorMessage">
-        {{ errorMessage }}
-      </p>
-
-      <!-- Botón de acceso -->
-      <button type="submit" [disabled]="loading">
-        {{ loading ? 'Entrando...' : 'Iniciar sesión' }}
-      </button>
-
-    </form>
-
-    <!-- Recordarme -->
-    <div class="login-options">
-      <label>
-        <input type="checkbox" />
-        Recordarme
-      </label>
-    </div>
-
-    <!-- Recuperar contraseña -->
-    <div class="forgot-password">
-      <a routerLink="/auth/login">
-        ¿Has olvidado tu contraseña?
-      </a>
-    </div>
-
-
-    <!-- Separador -->
-    <!-- <div class="separator">
-      <span></span>
-      <b>o</b>
-      <span></span>
-    </div> -->
-
-    <!-- Espacios reservados para iconos sociales -->
-    <!-- <div class="social-login">
-
-      <div class="social-icon google" title="Google"></div>
-
-      <div class="social-icon apple" title="Apple"></div>
-
-      <div class="social-icon spotify" title="Spotify"></div>
-
-    </div> -->
-
-    <!-- Crear cuenta -->
-    <a class="create-account" routerLink="/auth/register">
-      Crear cuenta
-    </a>
+    </section>
 
   </main>
+
 </div>

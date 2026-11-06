@@ -1,133 +1,347 @@
 
 :host {
   display: block;
+  width: 100%;
   min-height: 100vh;
 }
 
+* {
+  box-sizing: border-box;
+}
+
+/* FONDO */
+
 .register-container {
+  position: relative;
+  width: 100%;
   min-height: 100vh;
+  min-height: 100dvh;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 40px 6%;
+  overflow: hidden;
+
+  font-family: 'Nunito Sans', sans-serif;
+
+  background:
+    radial-gradient(
+      ellipse at center,
+      #fffaff 0%,
+      transparent 75%
+    ),
+    linear-gradient(
+      135deg,
+      #fbf5ff,
+      #f0ddff,
+      #f8edff
+    );
+}
+
+/* DECORACIÓN DEL FONDO */
+
+.background-shape {
+  position: absolute;
+  z-index: 0;
+  pointer-events: none;
+  opacity: .8;
+}
+
+.shape-top {
+  width: 340px;
+  height: 210px;
+  top: -110px;
+  left: -110px;
+  background: #e8cfff;
+  border-radius: 45% 55% 65% 35%;
+  transform: rotate(-25deg);
+}
+
+.shape-bottom {
+  width: 390px;
+  height: 180px;
+  bottom: -115px;
+  right: -110px;
+  background: #e6c8ff;
+  border-radius: 60% 40% 35% 65%;
+  transform: rotate(-20deg);
+}
+
+/* DOS COLUMNAS */
+
+.register-layout {
+  position: relative;
+  z-index: 1;
+
+  width: 100%;
+  max-width: 1150px;
+
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: center;
+  gap: 70px;
+
+  margin: auto;
+}
+
+/* COLUMNA DEL LOGO */
+
+.brand-section {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 30px;
+}
+
+.brand-logo {
+  display: block;
+  width: 390px;
+  max-width: 100%;
+  height: auto;
+  object-fit: contain;
+}
+
+/* COLUMNA DEL FORMULARIO */
+
+.form-section {
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 30px 20px;
-  box-sizing: border-box;
-
-  background: linear-gradient(
-    135deg,
-    #1b1030 0%,
-    #38205b 50%,
-    #7045a0 100%
-  );
+  width: 100%;
 }
+
+/* TARJETA */
 
 .register-card {
   width: 100%;
-  max-width: 420px;
-  padding: 40px 35px;
+  max-width: 440px;
+
+  padding: 38px 38px;
+
   background: #ffffff;
-  border-radius: 22px;
-  box-shadow: 0 15px 45px rgba(0, 0, 0, 0.25);
-  box-sizing: border-box;
+  border: 1px solid #eee3f8;
+  border-radius: 25px;
+
+  box-shadow: 0 15px 45px rgba(112, 69, 160, 0.12);
 }
 
-.register-card h1 {
-  color: #62359b;
+/* TÍTULO */
+
+.form-header {
   text-align: center;
-  font-size: 26px;
-  margin: 0 0 12px;
+  margin-bottom: 25px;
 }
 
-.subtitle {
-  text-align: center;
-  color: #777;
-  font-size: 14px;
-  margin-bottom: 30px;
-  line-height: 1.5;
+.form-header h2 {
+  color: #7045a0;
+  font-family: 'Nunito Sans', sans-serif;
+  font-size: 25px;
+  font-weight: 800;
+  margin: 0;
 }
+
+/* FORMULARIO */
 
 .register-card form {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 9px;
 }
 
-.register-card label {
-  color: #38205b;
-  font-weight: 600;
+.register-card form > label {
+  color: #594174;
   font-size: 14px;
-  margin-top: 8px;
+  font-weight: 700;
+  margin-top: 6px;
 }
 
-.register-card input {
+/* CAMPOS */
+
+.input-group {
+  height: 49px;
+  display: flex;
+  align-items: center;
+
+  padding: 0 15px;
+
+  background: #faf8fd;
+  border: 1px solid #e8dff2;
+  border-radius: 12px;
+
+  transition: .2s;
+}
+
+.input-group:focus-within {
+  background: #ffffff;
+  border-color: #a77bd0;
+  box-shadow: 0 0 0 3px rgba(167, 123, 208, .12);
+}
+
+.input-group input {
   width: 100%;
-  padding: 12px;
-  border: 1px solid #ddd;
-  border-radius: 10px;
-  box-sizing: border-box;
-  font-size: 14px;
-  outline: none;
-  transition: 0.3s;
-}
+  height: 100%;
 
-.register-card input:focus {
-  border-color: #7045a0;
-  box-shadow: 0 0 0 3px rgba(112, 69, 160, 0.12);
-}
-
-.register-card button {
-  margin-top: 18px;
-  padding: 14px;
   border: none;
-  border-radius: 10px;
-  background: #7045a0;
-  color: white;
+  outline: none;
+  background: transparent;
+
+  color: #38234f;
+  font-family: 'Nunito Sans', sans-serif;
+  font-size: 14px;
+}
+
+.input-group input::placeholder {
+  color: #a99bb7;
+}
+
+/* BOTÓN */
+
+.register-card form button {
+  width: 100%;
+  height: 50px;
+
+  margin-top: 14px;
+
+  border: none;
+  border-radius: 13px;
+
+  background: linear-gradient(
+    100deg,
+    #a77bd0,
+    #8052b0
+  );
+
+  color: #ffffff;
+  font-family: 'Nunito Sans', sans-serif;
   font-size: 15px;
-  font-weight: bold;
+  font-weight: 800;
+
   cursor: pointer;
-  transition: 0.3s;
+  transition: .25s;
 }
 
-.register-card button:hover {
-  background: #542d83;
+.register-card form button:hover:not(:disabled) {
   transform: translateY(-2px);
+  box-shadow: 0 7px 18px rgba(112, 69, 160, .22);
 }
 
-.register-card button:disabled {
-  opacity: 0.6;
+.register-card form button:disabled {
+  opacity: .6;
   cursor: not-allowed;
-  transform: none;
 }
+
+/* MENSAJE */
 
 .mensaje {
-  color: #62359b;
+  color: #7045a0;
   text-align: center;
   font-size: 13px;
   line-height: 1.5;
+  margin: 5px 0;
 }
+
+/* ENLACE AL LOGIN */
 
 .login-link {
   text-align: center;
-  margin-top: 25px;
-  font-size: 14px;
-  color: #666;
+  margin-top: 23px;
+}
+
+.login-link p {
+  color: #9689a2;
+  font-size: 13px;
+  margin: 0 0 12px;
 }
 
 .login-link a {
+  display: block;
+  width: 100%;
+  padding: 12px;
+
+  border: 1px solid #a77acb;
+  border-radius: 25px;
+
   color: #7045a0;
-  font-weight: bold;
   text-decoration: none;
+  text-align: center;
+
+  font-size: 14px;
+  font-weight: 800;
+
+  transition: .2s;
 }
 
 .login-link a:hover {
-  text-decoration: underline;
+  background: #f2e8fc;
+  border-color: #8651b4;
 }
 
-@media (max-width: 480px) {
-  .register-card {
-    padding: 30px 22px;
+/* TABLETS */
+
+@media (max-width: 850px) {
+  .register-container {
+    padding: 35px 25px;
   }
 
-  .register-card h1 {
-    font-size: 23px;
+  .register-layout {
+    gap: 30px;
+  }
+
+  .brand-logo {
+    width: 280px;
+  }
+
+  .register-card {
+    padding: 32px 28px;
+  }
+}
+
+/* MÓVILES */
+
+@media (max-width: 650px) {
+  .register-container {
+    padding: 25px 18px;
+    overflow-y: auto;
+  }
+
+  .register-layout {
+    grid-template-columns: 1fr;
+    gap: 15px;
+    max-width: 440px;
+  }
+
+  .brand-section {
+    padding: 5px 10px;
+  }
+
+  .brand-logo {
+    width: 165px;
+  }
+
+  .register-card {
+    padding: 30px 24px;
+    border-radius: 21px;
+  }
+
+  .form-header {
+    margin-bottom: 22px;
+  }
+
+  .form-header h2 {
+    font-size: 22px;
+  }
+}
+
+/* MÓVILES PEQUEÑOS */
+
+@media (max-width: 380px) {
+  .brand-logo {
+    width: 135px;
+  }
+
+  .register-card {
+    padding: 25px 19px;
   }
 }

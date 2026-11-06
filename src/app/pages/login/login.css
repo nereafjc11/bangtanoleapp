@@ -1,8 +1,4 @@
 
-/* =========================================
-   CONFIGURACIÓN GENERAL
-========================================= */
-
 :host {
   display: block;
   width: 100%;
@@ -13,59 +9,44 @@
   box-sizing: border-box;
 }
 
-/* =========================================
-   FONDO PRINCIPAL
-========================================= */
+/* ==============================
+   FONDO GENERAL
+============================== */
 
 .login-container {
   position: relative;
   width: 100%;
   min-height: 100vh;
   min-height: 100dvh;
-
   display: flex;
-  justify-content: center;
   align-items: center;
-
+  justify-content: center;
+  padding: 35px 6%;
   overflow: hidden;
-  padding: 25px 20px;
-
   font-family: 'Nunito Sans', sans-serif;
 
   background:
-    radial-gradient(
-      ellipse at 50% 45%,
-      #fffaff 0%,
-      transparent 72%
-    ),
-    linear-gradient(
-      135deg,
-      #fbf5ff,
-      #f0ddff,
-      #f8edff
-    );
+    radial-gradient(ellipse at center, #fffaff 0%, transparent 75%),
+    linear-gradient(135deg, #fbf5ff, #f0ddff, #f8edff);
 }
 
-/* =========================================
-   FORMAS DECORATIVAS
-========================================= */
+/* ==============================
+   DECORACIÓN DEL FONDO
+============================== */
 
 .background-shape {
   position: absolute;
   z-index: 0;
   pointer-events: none;
-  opacity: .85;
+  opacity: .8;
 }
 
 .shape-top {
   width: 340px;
   height: 210px;
-
   top: -110px;
   left: -110px;
-
   background: #e8cfff;
-
   border-radius: 45% 55% 65% 35%;
   transform: rotate(-25deg);
 }
@@ -73,529 +54,385 @@
 .shape-bottom {
   width: 390px;
   height: 180px;
-
   bottom: -115px;
   right: -110px;
-
   background: #e6c8ff;
-
   border-radius: 60% 40% 35% 65%;
   transform: rotate(-20deg);
 }
 
-/* =========================================
-   CORAZÓN DECORATIVO
-========================================= */
+/* ==============================
+   DISTRIBUCIÓN PRINCIPAL
+============================== */
 
-.bottom-decoration {
-  position: absolute;
-
-  right: 7%;
-  bottom: 7%;
-
-  z-index: 0;
-
-  color: #bd73f5;
-  font-size: 48px;
-  font-weight: 400;
-
-  transform: rotate(-15deg);
-
-  pointer-events: none;
-  opacity: .8;
-}
-
-/* =========================================
-   CONTENIDO PRINCIPAL
-========================================= */
-
-.login-content {
+.login-layout {
   position: relative;
   z-index: 1;
-
   width: 100%;
-  max-width: 540px;
-
+  max-width: 1150px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: center;
+  gap: 65px;
   margin: auto;
-  padding: 15px 25px;
-
-  text-align: center;
 }
 
-/* =========================================
-   LOGO
-========================================= */
+/* ==============================
+   COLUMNA DEL LOGO
+============================== */
+
+.brand-section {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 25px;
+}
 
 .brand-logo {
   display: block;
-
-  width: 250px;
+  width: 370px;
+  max-width: 100%;
   height: auto;
-
   object-fit: contain;
-
-  margin: 0 auto;
 }
 
-/* =========================================
-   TÍTULOS
-========================================= */
+/* ==============================
+   COLUMNA DEL FORMULARIO
+============================== */
 
-.login-content h1 {
-  font-family: 'Chewy', cursive;
-  font-size: 48px;
-  font-weight: 400;
-  color: #75449b;
-  margin: 10px 0 20px;
-  text-align: center;
+.form-section {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
 }
 
-.login-content h2 {
-  color: #321b4d;
+/* ==============================
+   TARJETA
+============================== */
 
-  font-family: 'Nunito Sans', sans-serif;
+.login-card {
+  width: 100%;
+  max-width: 440px;
+  height: 590px;
+  padding: 30px 34px 23px;
 
-  font-size: 22px;
-  font-weight: 800;
-
-  margin: 0 0 23px;
-}
-
-/* =========================================
-   FORMULARIO
-========================================= */
-
-.login-content form {
   display: flex;
   flex-direction: column;
-  gap: 10px;
 
-  width: 100%;
-  max-width: 500px;
-
-  margin: 0 auto;
+  background: #ffffff;
+  border: 1px solid #eee3f8;
+  border-radius: 24px;
+  box-shadow: 0 15px 45px rgba(112, 69, 160, 0.12);
 }
 
-/* =========================================
-   CAMPOS DE ENTRADA
-========================================= */
+/* ==============================
+   CABECERA
+============================== */
+
+.form-header {
+  text-align: center;
+  margin-bottom: 25px;
+  flex-shrink: 0;
+}
+
+.form-header h2 {
+  color: #7045a0;
+  font-size: 24px;
+  font-weight: 800;
+  margin: 0;
+}
+
+.form-header p {
+  color: #9689a2;
+  font-size: 12px;
+  margin: 6px 0 0;
+}
+
+/* ==============================
+   FORMULARIOS
+============================== */
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
+/* ==============================
+   AGRUPACIÓN DE CAMPOS
+============================== */
+
+.form-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.field > label {
+  color: #594174;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+/* ==============================
+   CAMPOS DE TEXTO
+============================== */
 
 .input-group {
-  height: 51px;
-
+  height: 43px;
+  min-height: 43px;
   display: flex;
   align-items: center;
-  gap: 12px;
+  padding: 0 13px;
 
-  padding: 0 15px;
-
-  background: rgba(255, 255, 255, .65);
-
-  border: 1px solid #decaf2;
-  border-radius: 13px;
-
+  background: #faf8fd;
+  border: 1px solid #e8dff2;
+  border-radius: 11px;
   transition: .2s;
 }
 
 .input-group:focus-within {
-  border-color: #9462bd;
-  background: #fff;
-
-  box-shadow: 0 0 0 3px rgba(148, 98, 189, .12);
-}
-
-.input-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  width: 20px;
-
-  color: #47246b;
-  font-size: 18px;
+  background: #ffffff;
+  border-color: #a77bd0;
+  box-shadow: 0 0 0 3px rgba(167, 123, 208, .12);
 }
 
 .input-group input {
-  flex: 1;
-  min-width: 0;
+  width: 100%;
   height: 100%;
-
   border: none;
   outline: none;
-
   background: transparent;
-
   color: #38234f;
-
   font-family: 'Nunito Sans', sans-serif;
-  font-size: 14px;
+  font-size: 13px;
 }
 
 .input-group input::placeholder {
-  color: #937fa9;
+  color: #a99bb7;
 }
 
-.password-icon {
-  color: #634183;
-  font-size: 16px;
-}
-
-/* =========================================
-   BOTÓN INICIAR SESIÓN
-========================================= */
-
-.login-content form button {
-  height: 49px;
-
-  margin-top: 3px;
-
-  border: none;
-  border-radius: 14px;
-
-  background: linear-gradient(
-    100deg,
-    #843c9d,
-    #54266f
-  );
-
-  color: white;
-
-  font-family: 'Nunito Sans', sans-serif;
-  font-size: 14px;
-  font-weight: 800;
-
-  cursor: pointer;
-
-  transition: .25s;
-}
-
-.login-content form button:hover:not(:disabled) {
-  transform: translateY(-2px);
-
-  box-shadow: 0 7px 18px rgba(82, 38, 111, .22);
-}
-
-.login-content form button:active:not(:disabled) {
-  transform: scale(.98);
-}
-
-.login-content form button:disabled {
-  opacity: .6;
-  cursor: not-allowed;
-}
-
-/* =========================================
-   MENSAJE DE ERROR
-========================================= */
-
-.error {
-  color: #bd3152;
-  font-size: 13px;
-
-  background: #fff0f3;
-  border: 1px solid #ffd5df;
-
-  padding: 9px;
-  border-radius: 10px;
-
-  margin: 2px 0;
-}
-
-/* =========================================
+/* ==============================
    RECORDARME
-========================================= */
+============================== */
 
 .login-options {
-  width: 100%;
-  max-width: 500px;
-
-  margin: 9px auto 0;
-
-  text-align: left;
-
-  color: #563875;
-  font-size: 13px;
+  margin-top: 1px;
+  color: #63477c;
+  font-size: 12px;
 }
 
 .login-options label {
   display: flex;
   align-items: center;
   gap: 8px;
-
   cursor: pointer;
 }
 
 .login-options input {
-  accent-color: #714092;
+  accent-color: #8052b0;
   margin: 0;
 }
 
-/* =========================================
+/* ==============================
    RECUPERAR CONTRASEÑA
-========================================= */
+============================== */
 
 .forgot-password {
-  margin-top: 15px;
-  margin-bottom: 15px;
-  font-size: 13px;
+  text-align: right;
+  font-size: 12px;
+  margin-top: -5px;
 }
 
 .forgot-password a {
-  color: #543276;
-
+  color: #8052b0;
   font-weight: 700;
+  text-decoration: none;
+}
+
+.forgot-password a:hover {
   text-decoration: underline;
 }
 
-/* =========================================
-   SEPARADOR
-========================================= */
+/* ==============================
+   ACCIONES Y BOTÓN PRINCIPAL
+============================== */
 
-.separator {
-  width: 100%;
-  max-width: 500px;
-
-  margin: 18px auto 14px;
-
+.form-actions {
+  margin-top: 22px;
+  margin-bottom: 22px;
   display: flex;
-  align-items: center;
-  gap: 13px;
-
-  color: #74449b;
+  flex-direction: column;
+  gap: 9px;
+  flex-shrink: 0;
 }
 
-.separator span {
-  height: 1px;
-  flex: 1;
+.form-actions button {
+  width: 100%;
+  height: 44px;
+  min-height: 44px;
+  border: none;
+  border-radius: 11px;
 
-  background: #dfcbed;
+  background: linear-gradient(100deg, #a77bd0, #8052b0);
+  color: #ffffff;
+  font-family: 'Nunito Sans', sans-serif;
+  font-size: 14px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: .25s;
 }
 
-.separator b {
+.form-actions button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 7px 18px rgba(112, 69, 160, .22);
+}
+
+.form-actions button:disabled {
+  opacity: .6;
+  cursor: not-allowed;
+}
+
+/* ==============================
+   MENSAJES DE ERROR
+============================== */
+
+.error {
+  color: #bd3152;
   font-size: 12px;
-  font-weight: 500;
+  background: #fff0f3;
+  border: 1px solid #ffd5df;
+  padding: 7px 9px;
+  border-radius: 9px;
+  margin: 0;
 }
 
-/* =========================================
-   HUECOS PARA ICONOS SOCIALES
-========================================= */
+/* ==============================
+   PIE DE TARJETA
+============================== */
 
-.social-login {
-  width: 100%;
-  max-width: 430px;
-
-  margin: 0 auto 14px;
-
-  display: flex;
-  justify-content: center;
-  gap: 12px;
+.register-link {
+  text-align: center;
+  margin-top: auto;
+  padding-top: 15px;
+  padding-bottom: 0;
+  flex-shrink: 0;
+  border-top: 1px solid #f1eaf7;
 }
 
-.social-icon {
-  flex: 1;
-
-  height: 47px;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  background: rgba(255, 255, 255, .6);
-
-  border: 1px solid #decaf2;
-  border-radius: 13px;
+.register-link p {
+  color: #9689a2;
+  font-size: 12px;
+  margin: 0 0 9px;
 }
-
-/* =========================================
-   CREAR CUENTA
-========================================= */
 
 .create-account {
   display: block;
-
   width: 100%;
-  max-width: 430px;
-
-  margin: 0 auto;
-  padding: 12px;
-
+  padding: 9px;
   border: 1px solid #a77acb;
-  border-radius: 25px;
-
-  color: #49266b;
-
+  border-radius: 22px;
+  color: #7045a0;
   text-decoration: none;
-
-  font-size: 14px;
+  text-align: center;
+  font-size: 13px;
   font-weight: 800;
-
   transition: .2s;
 }
 
 .create-account:hover {
-  background: #eee0fa;
+  background: #f2e8fc;
   border-color: #8651b4;
 }
 
-/* =========================================
-   SELECCIÓN Y CURSORES
-========================================= */
-
-.login-container {
-  cursor: default;
-}
-
-.login-container h1,
-.login-container h2,
-.login-container p,
-.login-container label,
-.login-container .separator,
-.login-container .brand-logo,
-.login-container .social-icon {
-  user-select: none;
-  -webkit-user-select: none;
-}
-
-.login-container input {
-  cursor: text;
-  user-select: text;
-  -webkit-user-select: text;
-}
-
-.login-container button,
-.login-container a {
-  cursor: pointer;
-}
-
-/* =========================================
+/* ==============================
    TABLETS
-========================================= */
+============================== */
 
-@media (max-width: 768px) {
+@media (max-width: 850px) {
+  .login-container {
+    padding: 30px 22px;
+  }
 
-  .login-content {
-    max-width: 480px;
+  .login-layout {
+    gap: 30px;
+  }
+
+  .brand-logo {
+    width: 270px;
+  }
+
+  .login-card {
+    padding: 28px 25px 22px;
+  }
+}
+
+/* ==============================
+   MÓVILES
+============================== */
+
+@media (max-width: 650px) {
+  .login-container {
+    padding: 22px 16px;
+    overflow-y: auto;
+  }
+
+  .login-layout {
+    grid-template-columns: 1fr;
+    gap: 10px;
+    max-width: 440px;
+  }
+
+  .brand-section {
+    padding: 4px 10px;
   }
 
   .brand-logo {
     width: 145px;
-    height: 115px;
   }
 
-  .login-content h1 {
-    font-size: 34px;
+  .login-card {
+    height: 590px;
+    padding: 27px 23px 22px;
+    border-radius: 21px;
   }
 
-  .login-content form,
-  .login-options,
-  .separator {
-    max-width: 100%;
+  .form-header {
+    margin-bottom: 22px;
+  }
+
+  .form-header h2 {
+    font-size: 22px;
+  }
+
+  .form-fields {
+    gap: 13px;
   }
 }
 
-/* =========================================
-   MÓVILES
-========================================= */
+/* ==============================
+   MÓVILES PEQUEÑOS
+============================== */
 
-@media (max-width: 600px) {
-
-  .login-container {
-    padding: 20px 15px;
-    overflow-y: auto;
-  }
-
-  .login-content {
-    max-width: 420px;
-    padding: 10px;
-  }
-
+@media (max-width: 380px) {
   .brand-logo {
     width: 125px;
-    height: 100px;
   }
 
-  .login-content h1 {
-    font-size: 30px;
-    margin-bottom: 13px;
-  }
-
-  .login-content h2 {
-    font-size: 19px;
-    margin-bottom: 18px;
+  .login-card {
+    padding: 24px 18px 20px;
   }
 
   .input-group {
-    height: 47px;
-  }
-
-  .login-content form button {
-    height: 46px;
-  }
-
-  .login-content form,
-  .login-options,
-  .separator,
-  .create-account,
-  .social-login {
-    max-width: 100%;
-  }
-
-  .bottom-decoration {
-    right: 4%;
-    bottom: 3%;
-    font-size: 35px;
-  }
-}
-
-/* =========================================
-   MÓVILES PEQUEÑOS
-========================================= */
-
-@media (max-width: 380px) {
-
-  .brand-logo {
-    width: 105px;
-    height: 85px;
-  }
-
-  .login-content h1 {
-    font-size: 27px;
-  }
-
-  .login-content h2 {
-    font-size: 17px;
-  }
-
-  .login-content {
-    padding: 5px;
-  }
-}
-
-/* =========================================
-   PANTALLAS DE POCA ALTURA
-========================================= */
-
-@media (min-width: 601px) and (max-height: 720px) {
-
-  .login-container {
-    align-items: flex-start;
-    overflow-y: auto;
-  }
-
-  .login-content {
-    margin: 10px auto;
-  }
-
-  .brand-logo {
-    height: 100px;
-  }
-
-  .login-content h1 {
-    font-size: 32px;
-    margin-bottom: 10px;
-  }
-
-  .login-content h2 {
-    margin-bottom: 15px;
+    height: 41px;
+    min-height: 41px;
   }
 }
