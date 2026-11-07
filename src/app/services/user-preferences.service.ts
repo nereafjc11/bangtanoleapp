@@ -11,11 +11,7 @@ export class UserPreferencesService {
     private supabaseService: SupabaseService
   ) {}
 
-  /**
-   * Obtiene el ID de la usuaria autenticada.
-   */
   private async getCurrentUserId(): Promise<string> {
-
     const { data, error } =
       await this.supabaseService.client.auth.getUser();
 
@@ -26,39 +22,42 @@ export class UserPreferencesService {
     return data.user.id;
   }
 
-  /**
-   * Recupera las categorias seleccionadas
-   * por la usuaria actual.
-   */
-  async getMyPreferences(): Promise<number[]> {
 
-    const userId = await this.getCurrentUserId();
+async getMyPreferences(userId?: string): Promise<number[]> {
+  console.log('1. [PREFERENCIAS] Iniciando consulta');
 
-    const { data, error } = await this.supabaseService.client
-      .from('user_preferences')
-      .select('category_id')
-      .eq('user_id', userId);
+  const currentUserId = userId ?? await this.getCurrentUserId();
 
-    if (error) {
-      console.error('Error al recuperar preferencias:', error);
-      throw error;
-    }
+  console.log('2. [PREFERENCIAS] ID del usuario:', currentUserId);
 
-    return (data ?? []).map(item => item.category_id);
+  const { data, error } = await this.supabaseService.client
+    .from('user_preferences')
+    .select('category_id')
+    .eq('user_id', currentUserId);
+
+  console.log('3. [PREFERENCIAS] Datos recibidos:', data);
+  console.log('4. [PREFERENCIAS] Error:', error);
+
+  if (error) {
+    console.error('Error al recuperar preferencias:', error);
+    throw error;
   }
 
-  /**
-   * Guarda las categorias seleccionadas.
-   * Sustituye las preferencias anteriores.
-   */
-  async saveMyPreferences(categoryIds: number[]): Promise<void> {
+  const categoryIds = (data ?? []).map(
+    item => Number(item.category_id)
+  );
 
+  console.log('5. [PREFERENCIAS] IDs de categorías:', categoryIds);
+
+  return categoryIds;
+}
+
+
+  async saveMyPreferences(categoryIds: number[]): Promise<void> {
     const userId = await this.getCurrentUserId();
 
-    // Eliminar posibles duplicados.
     const uniqueCategoryIds = [...new Set(categoryIds)];
 
-    // Eliminar las preferencias anteriores.
     const { error: deleteError } = await this.supabaseService.client
       .from('user_preferences')
       .delete()
@@ -69,13 +68,10 @@ export class UserPreferencesService {
       throw deleteError;
     }
 
-    // Si no hay categorias seleccionadas,
-    // la usuaria se queda sin preferencias.
     if (uniqueCategoryIds.length === 0) {
       return;
     }
 
-    // Guardar las nuevas preferencias.
     const preferences = uniqueCategoryIds.map(categoryId => ({
       user_id: userId,
       category_id: categoryId

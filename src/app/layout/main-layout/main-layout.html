@@ -1,0 +1,167 @@
+<div class="app-shell">
+
+  @if (menuOpen) {
+    <div class="sidebar-overlay" (click)="cerrarMenu()"></div>
+  }
+
+  <aside class="sidebar" [class.sidebar-open]="menuOpen">
+
+    <a routerLink="/home" class="brand" (click)="cerrarMenu()">
+      <span class="brand-name">Bangtan Olé</span>
+      <span class="brand-subtitle">Tu universo ARMY</span>
+    </a>
+
+    <nav class="sidebar-nav">
+
+      <span class="nav-heading">MENÚ PRINCIPAL</span>
+
+      <a
+        routerLink="/home"
+        routerLinkActive="active"
+        [routerLinkActiveOptions]="{ exact: true }"
+        (click)="cerrarMenu()">
+        <span class="nav-icon">⌂</span>
+        <span>Inicio</span>
+      </a>
+
+      <a
+        routerLink="/explorar"
+        routerLinkActive="active"
+        (click)="cerrarMenu()">
+        <span class="nav-icon">⌕</span>
+        <span>Explorar</span>
+      </a>
+
+      <div class="nav-divider"></div>
+
+      <span class="nav-heading">MIS INTERESES</span>
+
+      @if (loadingUser) {
+        <p class="nav-message">Cargando tus intereses...</p>
+      } @else if (myCategories.length > 0) {
+
+        @for (category of myCategories; track category.id) {
+          <a
+            [routerLink]="['/home']"
+            [queryParams]="{ category: category.slug }"
+            routerLinkActive="active"
+            (click)="cerrarMenu()">
+            <span class="nav-category-dot"></span>
+            <span>{{ category.name }}</span>
+          </a>
+        }
+
+      } @else {
+        <p class="nav-message">
+          Todavía no has seleccionado intereses.
+        </p>
+      }
+
+      <div class="nav-divider"></div>
+
+      <span class="nav-heading">TU ESPACIO</span>
+
+      <a routerLink="/listas" routerLinkActive="active" (click)="cerrarMenu()">
+        <span class="nav-icon">☷</span>
+        <span>Listas</span>
+      </a>
+
+      <a routerLink="/favoritos" routerLinkActive="active" (click)="cerrarMenu()">
+        <span class="nav-icon">♡</span>
+        <span>Favoritos</span>
+      </a>
+
+      <a routerLink="/comunidad" routerLinkActive="active" (click)="cerrarMenu()">
+        <span class="nav-icon">♧</span>
+        <span>Comunidad</span>
+      </a>
+
+      <a routerLink="/profile" routerLinkActive="active" (click)="cerrarMenu()">
+        <span class="nav-icon">♙</span>
+        <span>Mi perfil</span>
+      </a>
+
+    </nav>
+
+    <div class="sidebar-footer">
+      <span>Hecho para ARMY</span>
+      <strong>Bangtan Olé</strong>
+    </div>
+
+  </aside>
+
+  <div class="main-area">
+
+    <header class="topbar">
+
+      <button
+        class="menu-toggle"
+        type="button"
+        (click)="alternarMenu()"
+        aria-label="Abrir menú">
+        ☰
+      </button>
+
+      <div class="global-search">
+        <div class="search-box">
+          <span>⌕</span>
+
+          <input
+            type="search"
+            [(ngModel)]="globalQuery"
+            (ngModelChange)="onGlobalSearchChange()"
+            placeholder="Buscar películas, series, anime, actores, directores..."
+            aria-label="Buscar en Bangtan Olé">
+
+          @if (globalQuery) {
+            <button
+              type="button"
+              class="clear-search"
+              (click)="clearGlobalSearch()"
+              aria-label="Limpiar búsqueda">
+              ×
+            </button>
+          }
+        </div>
+      </div>
+
+      <div class="topbar-actions">
+
+        <button
+          type="button"
+          class="notification-button"
+          aria-label="Notificaciones">
+          ♧
+          <span class="notification-dot"></span>
+        </button>
+
+        <a routerLink="/profile" class="account-link">
+
+          @if (avatarUrl) {
+            <img
+              class="account-avatar"
+              [src]="avatarUrl"
+              alt="Foto de perfil">
+          } @else {
+            <span class="account-avatar">
+              {{ userInitial }}
+            </span>
+          }
+
+          <span class="account-name">
+            {{ profileName }}
+          </span>
+
+        </a>
+
+      </div>
+
+    </header>
+
+    <main class="page-content">
+      <router-outlet></router-outlet>
+    </main>
+
+  </div>
+
+</div>
