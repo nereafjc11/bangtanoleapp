@@ -15,12 +15,12 @@
       />
     </section>
 
-    <!-- COLUMNA DEL FORMULARIO -->
+    <!-- FORMULARIO -->
     <section class="form-section">
 
-      <div class="login-card">
+      <div class="login-card" [class.register-mode]="mode === 'register'">
 
-        <!-- CABECERA COMPARTIDA -->
+        <!-- CABECERA -->
         <div class="form-header">
           <h2>
             {{ mode === 'login' ? 'Iniciar sesión' : 'Crear cuenta' }}
@@ -28,8 +28,8 @@
 
           <p>
             {{ mode === 'login'
-              ? '¡Qué alegría tenerte de vuelta! 💜'
-              : 'Únete a nuestra pequeña comunidad ARMY 💜' }}
+              ? '¡Qué alegría tenerte de vuelta! '
+              : 'Únete a nuestra pequeña comunidad ARMY ' }}
           </p>
         </div>
 
@@ -44,6 +44,7 @@
 
             <div class="field">
               <label for="nombre">Nombre de usuario</label>
+
               <div class="input-group">
                 <input
                   id="nombre"
@@ -59,6 +60,7 @@
 
             <div class="field">
               <label for="email-register">Correo electrónico</label>
+
               <div class="input-group">
                 <input
                   id="email-register"
@@ -74,31 +76,85 @@
 
             <div class="field">
               <label for="password-register">Contraseña</label>
+
               <div class="input-group">
                 <input
                   id="password-register"
-                  type="password"
+                  [type]="showRegisterPassword ? 'text' : 'password'"
                   name="password"
                   [(ngModel)]="password"
                   placeholder="Mínimo 6 caracteres"
                   autocomplete="new-password"
                   required
                 />
+
+                <button
+                  type="button"
+                  class="toggle-password"
+                  (click)="showRegisterPassword = !showRegisterPassword"
+                  [attr.aria-label]="showRegisterPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'"
+                >
+                  <svg
+                    *ngIf="!showRegisterPassword"
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                  >
+                    <path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7Z"/>
+                    <circle cx="12" cy="12" r="3"/>
+                  </svg>
+
+                  <svg
+                    *ngIf="showRegisterPassword"
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                  >
+                    <path d="m3 3 18 18"/>
+                    <path d="M10.6 5.1A10.8 10.8 0 0 1 12 5c6.4 0 10 7 10 7a16 16 0 0 1-3 3.8"/>
+                    <path d="M6.6 6.6C3.6 8.5 2 12 2 12s3.6 7 10 7c1.3 0 2.5-.3 3.5-.8"/>
+                  </svg>
+                </button>
               </div>
             </div>
 
             <div class="field">
               <label for="confirmPassword">Confirmar contraseña</label>
+
               <div class="input-group">
                 <input
                   id="confirmPassword"
-                  type="password"
+                  [type]="showConfirmPassword ? 'text' : 'password'"
                   name="confirmPassword"
                   [(ngModel)]="confirmPassword"
                   placeholder="Repite tu contraseña"
                   autocomplete="new-password"
                   required
                 />
+
+                <button
+                  type="button"
+                  class="toggle-password"
+                  (click)="showConfirmPassword = !showConfirmPassword"
+                  [attr.aria-label]="showConfirmPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'"
+                >
+                  <svg
+                    *ngIf="!showConfirmPassword"
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                  >
+                    <path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7Z"/>
+                    <circle cx="12" cy="12" r="3"/>
+                  </svg>
+
+                  <svg
+                    *ngIf="showConfirmPassword"
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                  >
+                    <path d="m3 3 18 18"/>
+                    <path d="M10.6 5.1A10.8 10.8 0 0 1 12 5c6.4 0 10 7 10 7a16 16 0 0 1-3 3.8"/>
+                    <path d="M6.6 6.6C3.6 8.5 2 12 2 12s3.6 7 10 7c1.3 0 2.5-.3 3.5-.8"/>
+                  </svg>
+                </button>
               </div>
             </div>
 
@@ -108,7 +164,7 @@
             <p class="error" *ngIf="mensaje">{{ mensaje }}</p>
 
             <button type="submit" [disabled]="loading">
-              {{ loading ? 'Creando cuenta...' : 'Crear cuenta 💜' }}
+              {{ loading ? 'Creando cuenta...' : 'Crear cuenta' }}
             </button>
           </div>
 
@@ -125,6 +181,7 @@
 
             <div class="field">
               <label for="email-login">Correo electrónico</label>
+
               <div class="input-group">
                 <input
                   id="email-login"
@@ -140,16 +197,43 @@
 
             <div class="field">
               <label for="password-login">Contraseña</label>
+
               <div class="input-group">
                 <input
                   id="password-login"
-                  type="password"
+                  [type]="showLoginPassword ? 'text' : 'password'"
                   name="password"
                   [(ngModel)]="password"
                   placeholder="Contraseña"
                   autocomplete="current-password"
                   required
                 />
+
+                <button
+                  type="button"
+                  class="toggle-password"
+                  (click)="showLoginPassword = !showLoginPassword"
+                  [attr.aria-label]="showLoginPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'"
+                >
+                  <svg
+                    *ngIf="!showLoginPassword"
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                  >
+                    <path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7Z"/>
+                    <circle cx="12" cy="12" r="3"/>
+                  </svg>
+
+                  <svg
+                    *ngIf="showLoginPassword"
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                  >
+                    <path d="m3 3 18 18"/>
+                    <path d="M10.6 5.1A10.8 10.8 0 0 1 12 5c6.4 0 10 7 10 7a16 16 0 0 1-3 3.8"/>
+                    <path d="M6.6 6.6C3.6 8.5 2 12 2 12s3.6 7 10 7c1.3 0 2.5-.3 3.5-.8"/>
+                  </svg>
+                </button>
               </div>
             </div>
 
@@ -174,13 +258,13 @@
             </p>
 
             <button type="submit" [disabled]="loading">
-              {{ loading ? 'Entrando...' : 'Iniciar sesión 💜' }}
+              {{ loading ? 'Entrando...' : 'Iniciar sesión' }}
             </button>
           </div>
 
         </form>
 
-        <!-- PIE COMPARTIDO -->
+        <!-- PIE -->
         <div class="register-link" *ngIf="mode === 'login'">
           <p>¿Todavía no tienes cuenta?</p>
           <a class="create-account" routerLink="/auth/register">

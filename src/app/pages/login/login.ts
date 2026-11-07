@@ -18,7 +18,9 @@ export class Login implements OnInit {
   private onboardingService = inject(OnboardingService);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
-
+showLoginPassword = false;
+showRegisterPassword = false;
+showConfirmPassword = false;
   mode: 'login' | 'register' = 'login';
 
   nombre = '';
