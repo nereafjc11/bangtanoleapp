@@ -8,7 +8,7 @@ import {
 
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { Subscription } from 'rxjs';
 
 import { GlobalSearchService } from '../../services/global-search.service';
@@ -32,6 +32,7 @@ import {
 export class Explorar implements OnInit, OnDestroy {
 
   private globalSearchSubscription?: Subscription;
+  private routeQuerySubscription?: Subscription;
   private requestId = 0;
 
   query = '';
@@ -66,6 +67,7 @@ export class Explorar implements OnInit, OnDestroy {
   constructor(
     private tmdbService: TmdbService,
     private router: Router,
+    private route: ActivatedRoute,
     private cdr: ChangeDetectorRef,
     private globalSearchService: GlobalSearchService
   ) {}
@@ -85,13 +87,32 @@ export class Explorar implements OnInit, OnDestroy {
         void this.searchAll(query.trim());
       });
 
-    if (this.globalSearchService.currentQuery === null) {
-      void this.loadCatalog();
-    }
+    this.routeQuerySubscription = this.route.queryParams.subscribe(params => {
+      const routeQuery = typeof params['q'] === 'string' ? params['q'].trim() : '';
+      const personId = Number(params['personId']);
+      const personName = typeof params['personName'] === 'string' ? params['personName'] : '';
+
+      if (routeQuery) {
+        this.query = routeQuery;
+        void this.searchAll(routeQuery);
+        return;
+      }
+
+      if (Number.isFinite(personId) && personId > 0 && personName) {
+        this.query = personName;
+        void this.loadPersonFromRoute(personId, personName);
+        return;
+      }
+
+      if (this.globalSearchService.currentQuery === null) {
+        void this.loadCatalog();
+      }
+    });
   }
 
   ngOnDestroy(): void {
     this.globalSearchSubscription?.unsubscribe();
+    this.routeQuerySubscription?.unsubscribe();
   }
 
   // =====================================
@@ -320,6 +341,25 @@ export class Explorar implements OnInit, OnDestroy {
 
     if (pageHeight - scrollPosition < 700) {
       void this.loadMore();
+    }
+  }
+
+  private async loadPersonFromRoute(personId: number, personName: string): Promise<void> {
+    try {
+      const response = await this.tmdbService.searchPeople(personName);
+      const person = (response?.results ?? []).find(item => item.id === personId);
+      if (person) {
+        this.selectedPerson = person;
+        this.query = person.name;
+        await this.loadCatalog();
+      } else {
+        this.error = 'No hemos podido localizar a esa persona en el catálogo.';
+        this.cdr.markForCheck();
+      }
+    } catch (error) {
+      console.error('Error al recuperar la persona:', error);
+      this.error = 'No hemos podido cargar los trabajos de esta persona.';
+      this.cdr.markForCheck();
     }
   }
 

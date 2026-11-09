@@ -47,6 +47,21 @@ export class ProfileService {
     return data as UserProfile;
   }
 
+  /** Recupera un perfil público por su identificador. */
+  async getPublicProfile(userId: string): Promise<UserProfile> {
+    const { data, error } = await this.supabaseService.client
+      .from('profiles')
+      .select('id, username, display_name, avatar_url, bio, created_at, updated_at')
+      .eq('id', userId)
+      .single();
+
+    if (error) {
+      console.error('Error al recuperar el perfil público:', error);
+      throw error;
+    }
+    return data as UserProfile;
+  }
+
   /**
    * Actualiza los datos personales de la usuaria.
    */

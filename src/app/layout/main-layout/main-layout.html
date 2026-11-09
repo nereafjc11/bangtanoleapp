@@ -104,25 +104,81 @@
 
       <div class="global-search">
         <div class="search-box">
-          <span>⌕</span>
-
+          <span aria-hidden="true">⌕</span>
           <input
             type="search"
             [(ngModel)]="globalQuery"
             (ngModelChange)="onGlobalSearchChange()"
-            placeholder="Buscar películas, series, anime, actores, directores..."
-            aria-label="Buscar en Bangtan Olé">
-
+            (focus)="onSearchFocus()"
+            (keydown.enter)="viewAllResults()"
+            placeholder="Buscar películas, series, personas o ARMY..."
+            aria-label="Buscar en Bangtan Olé"
+            aria-autocomplete="list"
+            [attr.aria-expanded]="searchOpen">
           @if (globalQuery) {
-            <button
-              type="button"
-              class="clear-search"
-              (click)="clearGlobalSearch()"
-              aria-label="Limpiar búsqueda">
-              ×
-            </button>
+            <button type="button" class="clear-search" (click)="clearGlobalSearch()" aria-label="Limpiar búsqueda">×</button>
           }
         </div>
+
+        @if (searchOpen) {
+          <div class="search-dropdown" role="listbox" aria-label="Sugerencias de búsqueda">
+            @if (globalQuery.trim().length < 2) {
+              <p class="search-hint">Escribe al menos 2 caracteres.</p>
+            } @else if (searchLoading) {
+              <p class="search-hint">Buscando...</p>
+            } @else if (!hasSearchResults) {
+              <p class="search-hint">No hemos encontrado resultados.</p>
+            } @else {
+               @if (userResults.length) {
+                <section class="search-result-group">
+                  <h3>Comunidad</h3>
+                  @for (user of userResults; track user.id) {
+                    <button type="button" class="search-result" (click)="openUser(user)">
+                      @if (user.avatar_url) { <img [src]="user.avatar_url" [alt]="'Avatar de ' + (user.display_name || user.username || 'usuario')"> }
+                      @else { <span class="search-user-initial">{{ (user.display_name || user.username || 'A').charAt(0).toUpperCase() }}</span> }
+                      <span>{{ user.display_name || user.username || 'ARMY' }}<small>{{ user.username ? '@' + user.username : 'Perfil de la comunidad' }}</small></span>
+                    </button>
+                  }
+                </section>
+              }
+              @if (movieResults.length) {
+                <section class="search-result-group">
+                  <h3>Películas</h3>
+                  @for (item of movieResults; track item.id) {
+                    <button type="button" class="search-result" (click)="openContent(item, 'movie')">
+                      @if (item.poster_path) { <img [src]="tmdbService.getPoster(item.poster_path, 'w92')" [alt]="'Póster de ' + (item.title || item.name || '')"> }
+                      <span>{{ item.title || item.name }}</span>
+                    </button>
+                  }
+                </section>
+              }
+              @if (tvResults.length) {
+                <section class="search-result-group">
+                  <h3>Series</h3>
+                  @for (item of tvResults; track item.id) {
+                    <button type="button" class="search-result" (click)="openContent(item, 'tv')">
+                      @if (item.poster_path) { <img [src]="tmdbService.getPoster(item.poster_path, 'w92')" [alt]="'Póster de ' + (item.name || item.title || '')"> }
+                      <span>{{ item.name || item.title }}</span>
+                    </button>
+                  }
+                </section>
+              }
+              @if (peopleResults.length) {
+                <section class="search-result-group">
+                  <h3>Personas</h3>
+                  @for (person of peopleResults; track person.id) {
+                    <button type="button" class="search-result" (click)="openPerson(person)">
+                      <img [src]="tmdbService.getProfile(person.profile_path)" [alt]="'Fotografía de ' + person.name">
+                      <span>{{ person.name }}<small>{{ person.known_for_department || 'Profesional del cine y la televisión' }}</small></span>
+                    </button>
+                  }
+                </section>
+              }
+
+              <button type="button" class="search-view-all" (click)="viewAllResults()">Ver todos los resultados de «{{ globalQuery }}»</button>
+            }
+          </div>
+        }
       </div>
 
       <div class="topbar-actions">

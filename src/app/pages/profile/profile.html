@@ -1,196 +1,67 @@
-
 <div class="profile-page">
-
   <main class="profile-card">
-
     <header class="profile-header">
-
-      <button
-        type="button"
-        class="back-button"
-        (click)="goHome()"
-      >
-        ← Volver a Home
+      <button type="button" class="back-button" (click)="goHome()">
+        ← {{ isOwnProfile ? 'Volver a Home' : 'Volver a Explorar' }}
       </button>
 
-      <!-- Fotografía de perfil -->
       <div class="avatar-container">
-
         <div class="avatar-image">
-
           @if (previewUrl || avatarUrl) {
-
-            <img
-              [src]="previewUrl || avatarUrl"
-              alt="Fotografía de perfil"
-            />
-
-          } @else {
-
-            <span>💜</span>
-
-          }
-
+            <img [src]="previewUrl || avatarUrl" [alt]="'Fotografía de ' + (displayName || username || 'perfil')" />
+          } @else { <span>{{ (displayName || username || 'A').charAt(0).toUpperCase() }}</span> }
         </div>
-
-        <span class="avatar-label">
-          Mi perfil ARMY
-        </span>
-
-        <label for="avatarInput" class="avatar-upload-button">
-          📷 Elegir fotografía
-        </label>
-
-        <input
-          id="avatarInput"
-          type="file"
-          accept="image/jpeg,image/png,image/webp"
-          (change)="onAvatarSelected($event)"
-          hidden
-        />
-
-        @if (selectedFile) {
-
-          <button
-            type="button"
-            class="upload-button"
-            [disabled]="uploadingAvatar"
-            (click)="uploadAvatar()"
-          >
-            {{ uploadingAvatar ? 'Subiendo fotografía...' : 'Guardar fotografía 💜' }}
-          </button>
-
+        <span class="avatar-label">{{ isOwnProfile ? 'Mi perfil ARMY' : 'Perfil ARMY' }}</span>
+        @if (isOwnProfile) {
+          <label for="avatarInput" class="avatar-upload-button">Elegir fotografía</label>
+          <input id="avatarInput" type="file" accept="image/jpeg,image/png,image/webp" (change)="onAvatarSelected($event)" hidden />
+          @if (selectedFile) {
+            <button type="button" class="upload-button" [disabled]="uploadingAvatar" (click)="uploadAvatar()">
+              {{ uploadingAvatar ? 'Subiendo fotografía...' : 'Guardar fotografía' }}
+            </button>
+          }
         }
-
       </div>
 
-      <h1>¡Hola, {{ displayName || username || 'ARMY' }}!</h1>
-
-      <p>
-        Este es tu pequeño rincón personal en Bangtan Olé.
-      </p>
-
+      <h1>{{ isOwnProfile ? '¡Hola, ' + (displayName || username || 'ARMY') + '!' : (displayName || username || 'Perfil ARMY') }}</h1>
+      <p>{{ isOwnProfile ? 'Este es tu pequeño rincón personal en Bangtan Olé.' : (username ? '@' + username : 'Comunidad Bangtan Olé') }}</p>
     </header>
 
     @if (loading) {
-
-      <div class="message">
-        Cargando tu perfil...
-      </div>
-
-    } @else {
-
+      <div class="message">Cargando perfil...</div>
+    } @else if (errorMessage) {
+      <div class="error-message">{{ errorMessage }}</div>
+    } @else if (isOwnProfile) {
       <form (ngSubmit)="saveProfile()">
-
         <section class="profile-section">
-
           <h2>Mis datos personales</h2>
-
           <div class="form-group">
-
-            <label for="username">
-              Nombre de usuario
-            </label>
-
-            <input
-              id="username"
-              type="text"
-              name="username"
-              [(ngModel)]="username"
-              placeholder="Tu nombre de usuario"
-              maxlength="30"
-            />
-
+            <label for="username">Nombre de usuario</label>
+            <input id="username" type="text" name="username" [(ngModel)]="username" placeholder="Tu nombre de usuario" maxlength="30" />
           </div>
-
           <div class="form-group">
-
-            <label for="displayName">
-              Nombre
-            </label>
-
-            <input
-              id="displayName"
-              type="text"
-              name="displayName"
-              [(ngModel)]="displayName"
-              placeholder="¿Cómo quieres que te llamemos?"
-              maxlength="50"
-            />
-
+            <label for="displayName">Nombre</label>
+            <input id="displayName" type="text" name="displayName" [(ngModel)]="displayName" placeholder="¿Cómo quieres que te llamemos?" maxlength="50" />
           </div>
-
           <div class="form-group">
-
-            <label for="email">
-              Correo electrónico
-            </label>
-
-            <input
-              id="email"
-              type="email"
-              name="email"
-              [value]="email"
-              disabled
-            />
-
-            <small>
-              El correo está vinculado a tu cuenta.
-            </small>
-
+            <label for="email">Correo electrónico</label>
+            <input id="email" type="email" name="email" [value]="email" disabled />
+            <small>El correo está vinculado a tu cuenta.</small>
           </div>
-
           <div class="form-group">
-
-            <label for="bio">
-              Sobre mí
-            </label>
-
-            <textarea
-              id="bio"
-              name="bio"
-              [(ngModel)]="bio"
-              placeholder="Cuéntanos algo sobre ti..."
-              rows="4"
-              maxlength="300"
-            ></textarea>
-
-            <small>
-              {{ bio.length }} / 300 caracteres
-            </small>
-
+            <label for="bio">Sobre mí</label>
+            <textarea id="bio" name="bio" [(ngModel)]="bio" placeholder="Cuéntanos algo sobre ti..." rows="4" maxlength="300"></textarea>
+            <small>{{ bio.length }} / 300 caracteres</small>
           </div>
-
         </section>
-
-        @if (errorMessage) {
-
-          <div class="error-message">
-            {{ errorMessage }}
-          </div>
-
-        }
-
-        @if (successMessage) {
-
-          <div class="success-message">
-            {{ successMessage }}
-          </div>
-
-        }
-
-        <button
-          type="submit"
-          class="save-button"
-          [disabled]="saving"
-        >
-          {{ saving ? 'Guardando...' : 'Guardar cambios 💜' }}
-        </button>
-
+        @if (successMessage) { <div class="success-message">{{ successMessage }}</div> }
+        <button type="submit" class="save-button" [disabled]="saving">{{ saving ? 'Guardando...' : 'Guardar cambios' }}</button>
       </form>
-
+    } @else {
+      <section class="profile-section public-profile-bio">
+        <h2>Sobre mí</h2>
+        <p>{{ bio || 'Esta persona todavía no ha añadido una descripción.' }}</p>
+      </section>
     }
-
   </main>
-
 </div>
