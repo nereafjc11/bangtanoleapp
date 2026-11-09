@@ -201,8 +201,7 @@
   background: transparent;
   color: #38234f;
   font-family: 'Nunito Sans', sans-serif;
-  font-size: 13px;
-}
+font-size: 16px;}
 
 .input-group input::placeholder {
   color: #a99bb7;
@@ -470,7 +469,7 @@ input::-ms-clear {
   }
 
   .input-group input {
-    font-size: 13px;
+    font-size: 16px;
   }
 
   .form-actions {
@@ -653,7 +652,7 @@ input::-ms-clear {
   }
 
   .input-group input {
-    font-size: 13px;
+    font-size: 16px;
   }
 
   .form-actions {
@@ -891,38 +890,33 @@ input::-ms-clear {
 
 /* ESCRITORIOS CON POCA ALTURA */
 
-@media (min-width: 1101px) and (max-height: 750px) {
+@media (min-width: 1101px) and (min-height: 751px) {
+  :host {
+    height: 100vh;
+    height: 100dvh;
+    min-height: 0;
+    overflow: hidden;
+  }
+
   .login-container {
+    height: 100vh;
+    height: 100dvh;
+    min-height: 0;
+    box-sizing: border-box;
     padding-top: 20px;
     padding-bottom: 20px;
+    overflow-x: hidden;
+    overflow-y: hidden;
   }
 
-  .brand-logo {
-    width: min(340px, 42vh);
-  }
-
-  .login-card {
-    padding-top: 24px;
-    padding-bottom: 20px;
-  }
-
-  .form-header {
-    margin-bottom: 17px;
-  }
-
-  .form-fields {
-    gap: 11px;
-  }
-
-  .form-actions {
-    margin-top: 15px;
-  }
-
-  .register-link {
-    padding-top: 12px;
+  .login-layout {
+    height: 100%;
+    min-height: 0;
+    margin: 0 auto;
+    align-items: center;
+    align-content: center;
   }
 }
-
 
 
 /* =====================================================
