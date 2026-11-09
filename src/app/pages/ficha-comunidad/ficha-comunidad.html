@@ -1,0 +1,27 @@
+<main class="community-detail">
+  <a routerLink="/peliculas-series" class="back-link">← Volver a Películas y series</a>
+  @if (loading) { <p class="state">Cargando ficha…</p> }
+  @if (error) { <section class="state error">{{ error }} <button (click)="back()">Volver al catálogo</button></section>
+  }
+  @if (item) {
+  <article class="detail-card">
+    <div class="poster">
+      @if (item.poster_url) { <img [src]="item.poster_url" [alt]="'Póster de ' + item.title"> }
+      @else { <div class="poster-placeholder">Bangtan Olé</div> }
+    </div>
+    <div class="detail-copy">
+      <span class="eyebrow">FICHA DE LA COMUNIDAD</span>
+      <h1>{{ item.title }}</h1>
+      @if (item.original_title && item.original_title !== item.title) { <p class="original-title">{{ item.original_title
+        }}</p> }
+      <p class="metadata">{{ item.release_year || 'Año desconocido' }} · {{ item.content_type === 'movie' ? 'Película' :
+        'Serie o drama' }}</p>
+      @if (item.country) { <p><strong>País:</strong> {{ item.country }}</p> }
+      @if (item.genres.length) { <p><strong>Géneros:</strong> {{ item.genres.join(', ') }}</p> }
+      <h2>Sinopsis</h2>
+      <p class="overview">{{ item.overview || 'Esta ficha todavía no tiene una sinopsis.' }}</p>
+      <p class="community-note">Añadida por la comunidad de Bangtan Olé 💜</p>
+    </div>
+  </article>
+  }
+</main>

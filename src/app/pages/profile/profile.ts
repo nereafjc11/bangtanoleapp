@@ -1,23 +1,36 @@
-import { Component, OnInit, OnDestroy, ChangeDetectorRef, inject } from '@angular/core';
+
+import {
+  Component,
+  OnInit,
+  OnDestroy,
+  ChangeDetectorRef,
+  inject
+} from '@angular/core';
 
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Subscription } from 'rxjs';
 
-import { ProfileService, UserProfile } from '../../services/profile.service';
+import {
+  ProfileService,
+  UserProfile
+} from '../../services/profile.service';
 
 import { SupabaseService } from '../../services/supabase.service';
 import { AvatarService } from '../../services/avatar.service';
+
+type SocialListType = 'followers' | 'following';
 
 @Component({
   selector: 'app-profile',
   standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './profile.html',
-  styleUrl: './profile.css',
+  styleUrl: './profile.css'
 })
 export class Profile implements OnInit, OnDestroy {
+
   private profileService = inject(ProfileService);
   private avatarService = inject(AvatarService);
   private supabase = inject(SupabaseService);
@@ -27,7 +40,10 @@ export class Profile implements OnInit, OnDestroy {
 
   private routeSubscription?: Subscription;
   private loadRequest = 0;
-
+private socialRequest = 0;
+  currentUserId: string | null = null;
+  socialFollowStates: Record<string, boolean> = {};
+  socialFollowLoadingIds = new Set<string>();
   profile: UserProfile | null = null;
 
   isOwnProfile = true;
@@ -44,13 +60,34 @@ export class Profile implements OnInit, OnDestroy {
   loading = false;
   saving = false;
   uploadingAvatar = false;
+  followLoading = false;
+
+  followersCount = 0;
+  followingCount = 0;
+  isFollowingUser = false;
+
+  socialListType: SocialListType | null = null;
+  socialUsers: UserProfile[] = [];
+  socialSearch = '';
+  socialListLoading = false;
+  socialListError = '';
 
   errorMessage = '';
   successMessage = '';
 
+  get filteredSocialUsers(): UserProfile[] {
+    const query = this.socialSearch.trim().toLocaleLowerCase();
+    if (!query) return this.socialUsers;
+
+    return this.socialUsers.filter(person => {
+      const name = (person.display_name ?? '').toLocaleLowerCase();
+      const username = (person.username ?? '').toLocaleLowerCase();
+      return name.includes(query) || username.includes(query);
+    });
+  }
+
   ngOnInit(): void {
-    // Escucha los cambios de usuario en la URL.
-    this.routeSubscription = this.route.paramMap.subscribe((params) => {
+    this.routeSubscription = this.route.paramMap.subscribe(params => {
       const requestedId = params.get('id');
       void this.loadProfile(requestedId);
     });
@@ -77,6 +114,16 @@ export class Profile implements OnInit, OnDestroy {
     this.displayName = '';
     this.bio = '';
     this.avatarUrl = '';
+
+    this.followersCount = 0;
+    this.followingCount = 0;
+    this.isFollowingUser = false;
+
+    this.socialListType = null;
+    this.socialUsers = [];
+    this.socialListError = '';
+    this.socialFollowStates = {};
+
     this.selectedFile = null;
 
     if (this.previewUrl) {
@@ -87,7 +134,7 @@ export class Profile implements OnInit, OnDestroy {
     try {
       const {
         data: { user },
-        error,
+        error
       } = await this.supabase.client.auth.getUser();
 
       if (error || !user) {
@@ -97,11 +144,11 @@ export class Profile implements OnInit, OnDestroy {
 
       if (currentRequest !== this.loadRequest) return;
 
+      this.currentUserId = user.id;
       this.isOwnProfile = !requestedId || requestedId === user.id;
 
       if (this.isOwnProfile) {
         this.email = user.email ?? '';
-
         this.profile = await this.profileService.getMyProfile();
 
         if (currentRequest !== this.loadRequest) return;
@@ -117,9 +164,10 @@ export class Profile implements OnInit, OnDestroy {
           await this.profileService.updateMyProfile({
             username: this.username || null,
             display_name: registrationName,
-            bio: this.bio || null,
+            bio: this.bio || null
           });
         }
+
       } else {
         if (!requestedId) {
           throw new Error('No se ha indicado el usuario que se quiere consultar.');
@@ -134,13 +182,32 @@ export class Profile implements OnInit, OnDestroy {
         this.bio = this.profile.bio ?? '';
         this.avatarUrl = this.profile.avatar_url ?? '';
       }
+
+      if (currentRequest !== this.loadRequest) return;
+
+      const [followers, following] = await Promise.all([
+        this.profileService.getFollowersCount(this.profile.id),
+        this.profileService.getFollowingCount(this.profile.id)
+      ]);
+
+      if (currentRequest !== this.loadRequest) return;
+
+      this.followersCount = followers;
+      this.followingCount = following;
+
+      if (!this.isOwnProfile) {
+        this.isFollowingUser = await this.profileService.isFollowing(
+          this.profile.id
+        );
+      }
+
     } catch (error) {
       if (currentRequest !== this.loadRequest) return;
 
       console.error('Error al cargar el perfil:', error);
-
       this.errorMessage =
-        'No hemos podido cargar este perfil. Puede que no esté disponible o que no tengas permiso para verlo.';
+        'No hemos podido cargar este perfil. Inténtalo de nuevo.';
+
     } finally {
       if (currentRequest === this.loadRequest) {
         this.loading = false;
@@ -148,6 +215,182 @@ export class Profile implements OnInit, OnDestroy {
       }
     }
   }
+
+  // =====================================
+  // LISTAS SOCIALES
+  // =====================================
+
+
+async openSocialList(type: SocialListType): Promise<void> {
+  if (!this.profile) return;
+
+  // Si se pulsa de nuevo la pestaña activa, cerramos el popup.
+  if (this.socialListType === type && !this.socialListLoading) {
+    this.closeSocialList();
+    return;
+  }
+
+  // Identificador para evitar que una consulta antigua
+  // sobrescriba la lista que se está mostrando ahora.
+  const requestId = ++this.socialRequest;
+  const profileId = this.profile.id;
+
+  this.socialListType = type;
+  this.socialUsers = [];
+  this.socialListError = '';
+  this.socialListLoading = true;
+
+  let timeoutId: ReturnType<typeof setTimeout> | undefined;
+
+  try {
+    const loadPromise = type === 'followers'
+      ? this.profileService.getFollowers(profileId)
+      : this.profileService.getFollowing(profileId);
+
+    const timeoutPromise = new Promise<UserProfile[]>((_, reject) => {
+      timeoutId = setTimeout(() => {
+        reject(
+          new Error('La consulta está tardando demasiado. Comprueba tu conexión e inténtalo de nuevo.')
+        );
+      }, 15000);
+    });
+
+    const users = await Promise.race([
+      loadPromise,
+      timeoutPromise
+    ]);
+
+    if (requestId !== this.socialRequest) return;
+
+    this.socialUsers = users;
+
+    const states = await Promise.all(
+      users
+        .filter(person => person.id !== this.currentUserId)
+        .map(async person => ({
+          id: person.id,
+          following: await this.profileService.isFollowing(person.id)
+        }))
+    );
+
+    if (requestId !== this.socialRequest) return;
+
+    this.socialFollowStates = {};
+    for (const state of states) {
+      this.socialFollowStates[state.id] = state.following;
+    }
+
+  } catch (error) {
+    if (requestId !== this.socialRequest) return;
+
+    console.error('Error cargando la lista social:', error);
+
+    this.socialListError = error instanceof Error
+      ? error.message
+      : 'No hemos podido cargar esta lista. Inténtalo de nuevo.';
+
+  } finally {
+    if (timeoutId !== undefined) {
+      clearTimeout(timeoutId);
+    }
+
+    if (requestId === this.socialRequest) {
+      this.socialListLoading = false;
+      this.changeDetector.detectChanges();
+    }
+  }
+}
+
+
+
+closeSocialList(): void {
+  this.socialRequest++;
+  this.socialListType = null;
+  this.socialUsers = [];
+  this.socialSearch = '';
+  this.socialFollowStates = {};
+  this.socialListError = '';
+  this.socialListLoading = false;
+}
+
+
+  async toggleSocialUserFollow(person: UserProfile): Promise<void> {
+    if (
+      person.id === this.currentUserId ||
+      this.socialFollowLoadingIds.has(person.id)
+    ) {
+      return;
+    }
+
+    const wasFollowing = !!this.socialFollowStates[person.id];
+    this.socialFollowLoadingIds.add(person.id);
+    this.socialListError = '';
+    this.changeDetector.detectChanges();
+
+    try {
+      if (wasFollowing) {
+        await this.profileService.unfollowUser(person.id);
+        this.socialFollowStates[person.id] = false;
+      } else {
+        await this.profileService.followUser(person.id);
+        this.socialFollowStates[person.id] = true;
+      }
+
+      if (this.isOwnProfile) {
+        this.followingCount = Math.max(0, this.followingCount + (wasFollowing ? -1 : 1));
+      }
+    } catch (error) {
+      console.error('Error al actualizar seguimiento desde la lista:', error);
+      this.socialListError = 'No hemos podido actualizar el seguimiento. Inténtalo de nuevo.';
+    } finally {
+      this.socialFollowLoadingIds.delete(person.id);
+      this.changeDetector.detectChanges();
+    }
+  }
+
+  openSocialUser(user: UserProfile): void {
+    this.closeSocialList();
+
+    void this.router.navigate(['/profile', user.id]);
+  }
+
+  // =====================================
+  // SEGUIR Y DEJAR DE SEGUIR
+  // =====================================
+
+  async toggleFollow(): Promise<void> {
+    if (!this.profile || this.isOwnProfile || this.followLoading) {
+      return;
+    }
+
+    this.followLoading = true;
+    this.errorMessage = '';
+
+    try {
+      if (this.isFollowingUser) {
+        await this.profileService.unfollowUser(this.profile.id);
+        this.isFollowingUser = false;
+        this.followersCount = Math.max(0, this.followersCount - 1);
+      } else {
+        await this.profileService.followUser(this.profile.id);
+        this.isFollowingUser = true;
+        this.followersCount++;
+      }
+
+    } catch (error) {
+      console.error('Error al actualizar seguimiento:', error);
+      this.errorMessage =
+        'No hemos podido actualizar el seguimiento. Inténtalo de nuevo.';
+
+    } finally {
+      this.followLoading = false;
+      this.changeDetector.detectChanges();
+    }
+  }
+
+  // =====================================
+  // FOTOGRAFÍA DE PERFIL
+  // =====================================
 
   onAvatarSelected(event: Event): void {
     if (!this.isOwnProfile) return;
@@ -191,7 +434,9 @@ export class Profile implements OnInit, OnDestroy {
     this.successMessage = '';
 
     try {
-      const publicUrl = await this.avatarService.uploadAvatar(this.selectedFile);
+      const publicUrl = await this.avatarService.uploadAvatar(
+        this.selectedFile
+      );
 
       await this.profileService.updateAvatarUrl(publicUrl);
 
@@ -203,16 +448,23 @@ export class Profile implements OnInit, OnDestroy {
         this.previewUrl = '';
       }
 
-      this.successMessage = '¡Tu fotografía de perfil se ha actualizado!';
+      this.successMessage =
+        '¡Tu fotografía de perfil se ha actualizado!';
+
     } catch (error) {
       console.error('Error al subir la fotografía:', error);
+      this.errorMessage =
+        'No hemos podido subir tu fotografía. Inténtalo de nuevo.';
 
-      this.errorMessage = 'No hemos podido subir tu fotografía. Inténtalo de nuevo.';
     } finally {
       this.uploadingAvatar = false;
       this.changeDetector.detectChanges();
     }
   }
+
+  // =====================================
+  // GUARDAR PERFIL
+  // =====================================
 
   async saveProfile(): Promise<void> {
     if (!this.isOwnProfile) return;
@@ -225,14 +477,17 @@ export class Profile implements OnInit, OnDestroy {
       await this.profileService.updateMyProfile({
         username: this.username.trim() || null,
         display_name: this.displayName.trim() || null,
-        bio: this.bio.trim() || null,
+        bio: this.bio.trim() || null
       });
 
-      this.successMessage = '¡Tu perfil se ha actualizado correctamente!';
+      this.successMessage =
+        '¡Tu perfil se ha actualizado correctamente!';
+
     } catch (error) {
       console.error('Error al guardar el perfil:', error);
+      this.errorMessage =
+        'No hemos podido guardar los cambios. Inténtalo de nuevo.';
 
-      this.errorMessage = 'No hemos podido guardar los cambios. Inténtalo de nuevo.';
     } finally {
       this.saving = false;
       this.changeDetector.detectChanges();
@@ -240,6 +495,8 @@ export class Profile implements OnInit, OnDestroy {
   }
 
   goHome(): void {
-    void this.router.navigate([this.isOwnProfile ? '/home' : '/explorar']);
+    void this.router.navigate([
+      this.isOwnProfile ? '/home' : '/explorar'
+    ]);
   }
 }

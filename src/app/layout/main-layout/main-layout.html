@@ -20,7 +20,7 @@
         routerLinkActive="active"
         [routerLinkActiveOptions]="{ exact: true }"
         (click)="cerrarMenu()">
-        <span class="nav-icon">⌂</span>
+        <span class="nav-icon bo-home" aria-hidden="true"></span>
         <span>Inicio</span>
       </a>
 
@@ -28,7 +28,7 @@
         routerLink="/explorar"
         routerLinkActive="active"
         (click)="cerrarMenu()">
-        <span class="nav-icon">⌕</span>
+        <span class="nav-icon bo-compass" aria-hidden="true"></span>
         <span>Explorar</span>
       </a>
 
@@ -42,11 +42,11 @@
 
         @for (category of myCategories; track category.id) {
           <a
-            [routerLink]="['/home']"
-            [queryParams]="{ category: category.slug }"
+            [routerLink]="category.slug.includes('series') && category.slug.includes('peliculas') ? ['/peliculas-series'] : ['/home']"
+            [queryParams]="category.slug.includes('series') && category.slug.includes('peliculas') ? null : { category: category.slug }"
             routerLinkActive="active"
             (click)="cerrarMenu()">
-            <span class="nav-category-dot"></span>
+            <span class="nav-icon" [attr.class]="'nav-icon bo-' + getCategoryIcon(category)" aria-hidden="true"></span>
             <span>{{ category.name }}</span>
           </a>
         }
@@ -62,22 +62,22 @@
       <span class="nav-heading">TU ESPACIO</span>
 
       <a routerLink="/listas" routerLinkActive="active" (click)="cerrarMenu()">
-        <span class="nav-icon">☷</span>
+        <span class="nav-icon bo-bookmark" aria-hidden="true"></span>
         <span>Listas</span>
       </a>
 
       <a routerLink="/favoritos" routerLinkActive="active" (click)="cerrarMenu()">
-        <span class="nav-icon">♡</span>
+        <span class="nav-icon bo-heart" aria-hidden="true"></span>
         <span>Favoritos</span>
       </a>
 
       <a routerLink="/comunidad" routerLinkActive="active" (click)="cerrarMenu()">
-        <span class="nav-icon">♧</span>
+        <span class="nav-icon bo-users" aria-hidden="true"></span>
         <span>Comunidad</span>
       </a>
 
       <a routerLink="/profile" routerLinkActive="active" (click)="cerrarMenu()">
-        <span class="nav-icon">♙</span>
+        <span class="nav-icon bo-user" aria-hidden="true"></span>
         <span>Mi perfil</span>
       </a>
 
@@ -99,12 +99,12 @@
         type="button"
         (click)="alternarMenu()"
         aria-label="Abrir menú">
-        ☰
+        <span class="bo-menu" aria-hidden="true"></span>
       </button>
 
       <div class="global-search">
         <div class="search-box">
-          <span aria-hidden="true">⌕</span>
+          <span class="bo-search search-icon" aria-hidden="true"></span>
           <input
             type="search"
             [(ngModel)]="globalQuery"
@@ -116,7 +116,7 @@
             aria-autocomplete="list"
             [attr.aria-expanded]="searchOpen">
           @if (globalQuery) {
-            <button type="button" class="clear-search" (click)="clearGlobalSearch()" aria-label="Limpiar búsqueda">×</button>
+            <button type="button" class="clear-search bo-x" (click)="clearGlobalSearch()" aria-label="Limpiar búsqueda"></button>
           }
         </div>
 
@@ -133,11 +133,31 @@
                 <section class="search-result-group">
                   <h3>Comunidad</h3>
                   @for (user of userResults; track user.id) {
-                    <button type="button" class="search-result" (click)="openUser(user)">
-                      @if (user.avatar_url) { <img [src]="user.avatar_url" [alt]="'Avatar de ' + (user.display_name || user.username || 'usuario')"> }
-                      @else { <span class="search-user-initial">{{ (user.display_name || user.username || 'A').charAt(0).toUpperCase() }}</span> }
-                      <span>{{ user.display_name || user.username || 'ARMY' }}<small>{{ user.username ? '@' + user.username : 'Perfil de la comunidad' }}</small></span>
-                    </button>
+                    <div class="search-user-row">
+                      <button type="button" class="search-result search-user-open" (click)="openUser(user)">
+                        @if (user.avatar_url) {
+                          <img [src]="user.avatar_url" [alt]="'Avatar de ' + (user.display_name || user.username || 'usuario')">
+                        } @else {
+                          <span class="search-user-initial">{{ (user.display_name || user.username || 'A').charAt(0).toUpperCase() }}</span>
+                        }
+                        <span>{{ user.display_name || user.username || 'ARMY' }}<small>{{ user.username ? '@' + user.username : 'Perfil de la comunidad' }}</small></span>
+                      </button>
+
+                      @if (user.id !== currentUserId) {
+                        <button
+                          type="button"
+                          class="search-follow-button"
+                          [class.following]="user.isFollowing"
+                          [disabled]="searchFollowLoading.has(user.id)"
+                          (click)="toggleSearchFollow(user)">
+                          @if (searchFollowLoading.has(user.id)) {
+                            ...
+                          } @else {
+                            {{ user.isFollowing ? 'Siguiendo' : 'Seguir' }}
+                          }
+                        </button>
+                      }
+                    </div>
                   }
                 </section>
               }
@@ -183,13 +203,88 @@
 
       <div class="topbar-actions">
 
-        <button
-          type="button"
-          class="notification-button"
-          aria-label="Notificaciones">
-          ♧
-          <span class="notification-dot"></span>
-        </button>
+       <div
+  class="notification-wrapper"
+  (mouseenter)="onNotificationsMouseEnter()"
+  (mouseleave)="onNotificationsMouseLeave()">
+          <button
+            type="button"
+            class="notification-button"
+            aria-label="Notificaciones"
+            [attr.aria-expanded]="notificationsOpen"
+            (click)="toggleNotifications()">
+            <span class="bo-bell" aria-hidden="true"></span>
+            @if (unreadNotificationCount > 0) {
+              <span class="notification-count">
+                {{ unreadNotificationCount > 99 ? '99+' : unreadNotificationCount }}
+              </span>
+            }
+          </button>
+
+          @if (notificationsOpen) {
+            <section class="notifications-panel" aria-label="Centro de notificaciones">
+              <div class="notifications-header">
+                <div>
+                  <strong>Notificaciones</strong>
+                  <small>Tu comunidad en Bangtan Olé</small>
+                </div>
+                <button
+                  type="button"
+                  class="notifications-close"
+                  (click)="notificationsOpen = false"
+                  aria-label="Cerrar notificaciones"><span class="bo-x" aria-hidden="true"></span></button>
+              </div>
+
+              @if (unreadNotificationCount > 0) {
+                <button
+                  type="button"
+                  class="notifications-read-all"
+                  (click)="markAllNotificationsAsRead()">
+                  Marcar todas como leídas
+                </button>
+              }
+
+              @if (notificationsLoading && notifications.length === 0) {
+                <p class="notifications-state">Cargando notificaciones...</p>
+              } @else if (notificationsError) {
+                <p class="notifications-state notifications-error">{{ notificationsError }}</p>
+                <button type="button" class="notifications-retry" (click)="loadNotifications()">Volver a intentar</button>
+              } @else if (notifications.length === 0) {
+                <div class="notifications-empty">
+                  <span class="bo-heart" aria-hidden="true"></span>
+                  <strong>Todo al día</strong>
+                  <small>Cuando alguien te siga, aparecerá aquí.</small>
+                </div>
+              } @else {
+                <div class="notifications-list">
+                  @for (notification of notifications; track notification.id) {
+                    <button
+                      type="button"
+                      class="notification-item"
+                      [class.unread]="!notification.is_read"
+                      (click)="openNotification(notification)">
+                      @if (notification.actorAvatar) {
+                        <img [src]="notification.actorAvatar" [alt]="'Avatar de ' + notification.actorName">
+                      } @else {
+                        <span class="notification-avatar-fallback">
+                          {{ notification.actorName.charAt(0).toUpperCase() }}
+                        </span>
+                      }
+                      <span class="notification-copy">
+                        <strong>{{ notification.actorName }}</strong>
+                        <span>ha empezado a seguirte</span>
+                        <small>{{ formatNotificationDate(notification.created_at) }}</small>
+                      </span>
+                      @if (!notification.is_read) {
+                        <span class="notification-unread-dot"></span>
+                      }
+                    </button>
+                  }
+                </div>
+              }
+            </section>
+          }
+        </div>
 
         <a routerLink="/profile" class="account-link">
 

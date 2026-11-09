@@ -44,18 +44,25 @@
   margin-bottom: 20px;
 }
 
-.avatar-placeholder {
-  width: 120px;
-  height: 120px;
+.avatar-image {
+  width: 130px;
+  height: 130px;
   display: flex;
   align-items: center;
   justify-content: center;
+  overflow: hidden;
   border: 5px solid #eee3ff;
   border-radius: 50%;
   background: linear-gradient(135deg, #d8c0fa, #eee3ff);
 }
 
-.avatar-placeholder span {
+.avatar-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.avatar-image span {
   font-size: 55px;
 }
 
@@ -188,46 +195,6 @@
   color: #287a43;
 }
 
-@media (max-width: 600px) {
-  .profile-page {
-    padding: 18px 12px;
-  }
-
-  .profile-card {
-    padding: 22px 17px;
-  }
-
-  .profile-header h1 {
-    font-size: 24px;
-  }
-
-  .profile-section {
-    padding: 18px 14px;
-  }
-}
-
-.avatar-image {
-  width: 130px;
-  height: 130px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-  border: 5px solid #eee3ff;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #d8c0fa, #eee3ff);
-}
-
-.avatar-image img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.avatar-image span {
-  font-size: 55px;
-}
-
 .avatar-upload-button {
   display: inline-block;
   padding: 10px 18px;
@@ -258,3 +225,781 @@
   cursor: not-allowed;
 }
 
+/* =====================================
+   ESTADÍSTICAS SOCIALES
+===================================== */
+
+.profile-social {
+  margin-bottom: 25px;
+  padding: 22px;
+  background: #faf7ff;
+  border-radius: 18px;
+}
+
+.profile-stats {
+  display: flex;
+  justify-content: center;
+  gap: 55px;
+  margin-bottom: 22px;
+}
+
+.profile-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  padding: 8px 18px;
+  border: none;
+  border-radius: 12px;
+  background: transparent;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.profile-stat:hover {
+  background: #f1e7ff;
+}
+
+.profile-stat strong {
+  color: #7544ad;
+  font-size: 26px;
+}
+
+.profile-stat span {
+  color: #777;
+  font-size: 13px;
+}
+
+.follow-button {
+  display: block;
+  width: 100%;
+  padding: 13px;
+  border: 2px solid #7544ad;
+  border-radius: 14px;
+  background: #7544ad;
+  color: white;
+  font-size: 15px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+
+.follow-button:hover:not(:disabled) {
+  background: #60358f;
+  border-color: #60358f;
+}
+
+.follow-button.following {
+  background: white;
+  color: #7544ad;
+}
+
+.follow-button.following:hover:not(:disabled) {
+  background: #f1e7ff;
+}
+
+.follow-button:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+/* =====================================
+   LISTAS DE SEGUIDORES Y SEGUIDOS
+===================================== */
+
+.social-list-section {
+  margin-bottom: 25px;
+  padding: 22px;
+  border: 1px solid #eadcf9;
+  border-radius: 18px;
+  background: #ffffff;
+  animation: social-list-appear 0.2s ease-out;
+}
+
+.social-list-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 15px;
+}
+
+.social-list-header h2 {
+  margin: 0;
+  color: #7544ad;
+  font-size: 19px;
+}
+
+.social-close-button {
+  width: 34px;
+  height: 34px;
+  border: none;
+  border-radius: 50%;
+  background: #f1e7ff;
+  color: #7544ad;
+  font-size: 25px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.social-close-button:hover {
+  background: #e4d2ff;
+}
+
+.social-users {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.social-user {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 10px;
+  border: none;
+  border-radius: 13px;
+  background: #faf7ff;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.social-user:hover {
+  background: #f0e5ff;
+}
+
+.social-user-avatar {
+  width: 46px;
+  height: 46px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border: 2px solid #e5d4fa;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #d8c0fa, #eee3ff);
+}
+
+.social-user-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.social-user-avatar span {
+  color: #7544ad;
+  font-size: 19px;
+  font-weight: bold;
+}
+
+.social-user-info {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.social-user-info strong {
+  overflow: hidden;
+  color: #7544ad;
+  font-size: 14px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.social-user-info small {
+  overflow: hidden;
+  color: #888;
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.social-user-arrow {
+  color: #a77bd6;
+  font-size: 27px;
+  line-height: 1;
+}
+
+.social-empty {
+  padding: 22px 10px;
+  color: #888;
+  text-align: center;
+  font-size: 14px;
+}
+
+.public-profile-bio h2 {
+  color: #7544ad;
+  font-size: 21px;
+}
+
+.public-profile-bio p {
+  color: #666;
+  line-height: 1.6;
+}
+
+@keyframes social-list-appear {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 600px) {
+  .profile-page {
+    padding: 18px 12px;
+  }
+
+  .profile-card {
+    padding: 22px 17px;
+  }
+
+  .profile-header h1 {
+    font-size: 24px;
+  }
+
+  .profile-section {
+    padding: 18px 14px;
+  }
+
+  .profile-social {
+    padding: 18px 14px;
+  }
+
+  .profile-stats {
+    gap: 25px;
+  }
+
+  .social-list-section {
+    padding: 16px 12px;
+  }
+}
+
+
+/* =====================================
+   POPUP MODAL DE SEGUIDORES Y SEGUIDOS
+===================================== */
+
+.social-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  box-sizing: border-box;
+  background: rgba(35, 18, 52, 0.58);
+  backdrop-filter: blur(4px);
+  animation: social-modal-fade 0.18s ease-out;
+}
+
+.social-list-section {
+  width: 100%;
+  max-width: 460px;
+  max-height: min( min( 680px, 85vh), 85dvh);
+  margin: 0;
+  padding: 22px;
+  box-sizing: border-box;
+  overflow: hidden;
+  border: 1px solid rgba(234, 220, 249, 0.95);
+  border-radius: 22px;
+  background: #ffffff;
+  box-shadow: 0 22px 70px rgba(30, 12, 48, 0.28);
+  animation: social-modal-enter 0.2s ease-out;
+}
+
+.social-list-header {
+  flex-shrink: 0;
+  margin-bottom: 16px;
+}
+
+.social-list-header h2 {
+  margin: 0 0 5px;
+  color: #7544ad;
+  font-size: 21px;
+}
+
+.social-list-header small {
+  color: #888;
+  font-size: 12px;
+}
+
+.social-modal-content {
+  max-height: calc(85dvh - 115px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-right: 3px;
+   scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.social-modal-content .message,
+.social-modal-content .error-message {
+  margin: 8px 0;
+}
+
+.social-users {
+  gap: 9px;
+}
+
+.social-user {
+  padding: 11px;
+}
+
+.social-close-button {
+  flex-shrink: 0;
+  width: 38px;
+  height: 38px;
+  font-size: 26px;
+}
+
+@keyframes social-modal-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes social-modal-enter {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@media (max-width: 600px) {
+  .social-modal-backdrop {
+    align-items: flex-end;
+    padding: 12px;
+  }
+
+  .social-list-section {
+    max-width: none;
+    max-height: 82vh;
+    max-height: 82dvh;
+    padding: 20px 16px;
+    border-radius: 22px 22px 18px 18px;
+  }
+
+  .social-modal-content {
+    max-height: calc(82dvh - 110px);
+  }
+}
+
+
+/* =====================================
+   POPUP MODAL DE SEGUIDORES Y SEGUIDOS
+===================================== */
+
+.social-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  box-sizing: border-box;
+  background: rgba(35, 18, 52, 0.58);
+  backdrop-filter: blur(4px);
+  animation: social-modal-fade 0.18s ease-out;
+}
+
+.social-list-section {
+  width: 100%;
+  max-width: 460px;
+  max-height: 85vh;
+  max-height: 85dvh;
+  margin: 0;
+  padding: 22px;
+  box-sizing: border-box;
+  overflow: hidden;
+  border: 1px solid #eadcf9;
+  border-radius: 22px;
+  background: #ffffff;
+  box-shadow: 0 22px 70px rgba(30, 12, 48, 0.28);
+  animation: social-modal-enter 0.2s ease-out;
+}
+
+.social-list-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.social-list-header h2 {
+  margin: 0 0 5px;
+  color: #7544ad;
+  font-size: 21px;
+}
+
+.social-list-header small {
+  color: #888;
+  font-size: 12px;
+}
+
+.social-close-button {
+  flex-shrink: 0;
+  width: 38px;
+  height: 38px;
+  border: none;
+  border-radius: 50%;
+  background: #f1e7ff;
+  color: #7544ad;
+  font-size: 26px;
+  cursor: pointer;
+}
+
+.social-close-button:hover {
+  background: #e4d2ff;
+}
+
+/* PESTAÑAS */
+
+.social-modal-tabs {
+  display: flex;
+  gap: 8px;
+  margin: 0 0 16px;
+  padding: 5px;
+  border-radius: 14px;
+  background: #f6f0fc;
+}
+
+.social-modal-tab {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-width: 0;
+  padding: 11px 8px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: #806b96;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+
+.social-modal-tab span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 6px;
+  border-radius: 20px;
+  background: rgba(117, 68, 173, 0.10);
+  color: inherit;
+  font-size: 11px;
+}
+
+.social-modal-tab.active {
+  background: #7544ad;
+  color: #ffffff;
+  box-shadow: 0 3px 9px rgba(80, 35, 120, 0.18);
+}
+
+.social-modal-tab.active span {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* CONTENIDO */
+
+.social-modal-content {
+  max-height: calc(85dvh - 150px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-right: 3px;
+}
+
+.social-modal-content .message,
+.social-modal-content .error-message {
+  margin: 8px 0;
+}
+
+.social-users {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.social-user {
+  padding: 11px;
+}
+
+.social-empty {
+  padding: 22px 10px;
+  color: #888;
+  text-align: center;
+  font-size: 14px;
+}
+
+/* ANIMACIONES */
+
+@keyframes social-modal-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes social-modal-enter {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* MÓVILES */
+
+@media (max-width: 600px) {
+  .social-modal-backdrop {
+    align-items: flex-end;
+    padding: 12px;
+  }
+
+  .social-list-section {
+    max-width: none;
+    max-height: 82vh;
+    max-height: 82dvh;
+    padding: 20px 16px;
+    border-radius: 22px 22px 18px 18px;
+  }
+
+  .social-modal-content {
+    max-height: calc(82dvh - 150px);
+  }
+}
+
+@media (max-width: 380px) {
+  .social-modal-tab {
+    gap: 5px;
+    padding: 10px 5px;
+    font-size: 12px;
+  }
+}
+
+
+
+/* SEGUIMIENTO DIRECTO EN LAS LISTAS SOCIALES */
+.social-user {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px;
+  border-radius: 13px;
+  background: #faf7ff;
+}
+.social-user-open {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  min-width: 0;
+  gap: 12px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+.social-user-open:hover .social-user-info strong { color: #60358f; }
+.social-follow-button { min-width: 85px; }
+.social-follow-button.following { background: #fff; color: #7544ad; }
+@media (max-width: 380px) {
+  .social-follow-button { min-width: 72px; padding: 7px 9px; font-size: 10px; }
+}
+
+
+/* BUSCADOR DENTRO DE LAS LISTAS DE SEGUIDORES Y SEGUIDOS */
+.social-search-box {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 14px;
+  padding: 0 14px;
+  min-height: 43px;
+  border: 1px solid #eadcf9;
+  border-radius: 22px;
+  background: #f7f1fc;
+  color: #8e69b1;
+}
+
+.social-search-box > span {
+  font-size: 22px;
+  line-height: 1;
+}
+
+.social-search-box input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: #49365d;
+  font: inherit;
+  font-size: 13px;
+}
+
+.social-search-box input::placeholder {
+  color: #9986b0;
+}
+
+.social-search-clear {
+  width: 25px;
+  height: 25px;
+  border: 0;
+  border-radius: 50%;
+  background: #eadcf9;
+  color: #7544ad;
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+}
+.social-follow-button {
+  flex-shrink: 0;
+  min-width: 85px;
+  padding: 8px 13px;
+  border: 1px solid #7544ad;
+  border-radius: 20px;
+  background: #7544ad;
+  color: #ffffff;
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+
+.social-follow-button:hover:not(:disabled) {
+  background: #60358f;
+}
+
+.social-follow-button.following {
+  background: #ffffff;
+  color: #7544ad;
+}
+
+.social-follow-button:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+@media (max-width: 380px) {
+  .social-follow-button {
+    min-width: 72px;
+    padding: 7px 9px;
+    font-size: 10px;
+  }
+}
+
+/* ESPACIO INFERIOR EN LAS LISTAS SOCIALES */
+
+.social-modal-content .social-users {
+  padding-bottom: 18px;
+}
+
+.social-modal-content {
+  scroll-padding-bottom: 18px;
+}
+/* =========================================
+   BUSCADOR FIJO EN LAS LISTAS SOCIALES
+========================================= */
+
+.social-modal-content {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 0 3px 0 0;
+}
+
+/* El buscador permanece visible al desplazarse */
+.social-modal-content .social-search-box {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  flex: 0 0 auto;
+  margin: 0 0 14px;
+  background: #f7f1fc;
+  box-shadow: 0 4px 10px rgba(80, 35, 120, 0.08);
+}
+
+/* Espacio debajo del último usuario */
+.social-modal-content .social-users {
+  flex: 0 0 auto;
+  padding-bottom: 22px;
+}
+
+/* OCULTAR BARRA DE DESPLAZAMIENTO DEL POPUP */
+
+
+.social-modal-content::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
+
+
+/* =========================================
+   BANGTAN ICONS
+========================================= */
+
+.back-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.back-button > .bo-chevron-left {
+  font-size: 14px;
+  line-height: 1;
+}
+
+.social-close-button,
+.social-search-clear {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.social-close-button > .bo-x {
+  font-size: 15px;
+  line-height: 1;
+}
+
+.social-search-box > .social-search-icon {
+  flex: 0 0 auto;
+  font-size: 17px;
+  line-height: 1;
+}
+
+.social-search-clear > .bo-x {
+  font-size: 12px;
+  line-height: 1;
+}

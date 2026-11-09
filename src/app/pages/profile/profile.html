@@ -1,67 +1,384 @@
+
 <div class="profile-page">
   <main class="profile-card">
+
     <header class="profile-header">
       <button type="button" class="back-button" (click)="goHome()">
-        ← {{ isOwnProfile ? 'Volver a Home' : 'Volver a Explorar' }}
+        <span class="bo-chevron-left" aria-hidden="true"></span> {{ isOwnProfile ? 'Volver a Home' : 'Volver a Explorar' }}
       </button>
 
       <div class="avatar-container">
         <div class="avatar-image">
           @if (previewUrl || avatarUrl) {
-            <img [src]="previewUrl || avatarUrl" [alt]="'Fotografía de ' + (displayName || username || 'perfil')" />
-          } @else { <span>{{ (displayName || username || 'A').charAt(0).toUpperCase() }}</span> }
+            <img
+              [src]="previewUrl || avatarUrl"
+              [alt]="'Fotografía de ' + (displayName || username || 'perfil')"
+            />
+          } @else {
+            <span>
+              {{ (displayName || username || 'A').charAt(0).toUpperCase() }}
+            </span>
+          }
         </div>
-        <span class="avatar-label">{{ isOwnProfile ? 'Mi perfil ARMY' : 'Perfil ARMY' }}</span>
+
+        <span class="avatar-label">
+          {{ isOwnProfile ? 'Mi perfil ARMY' : 'Perfil ARMY' }}
+        </span>
+
         @if (isOwnProfile) {
-          <label for="avatarInput" class="avatar-upload-button">Elegir fotografía</label>
-          <input id="avatarInput" type="file" accept="image/jpeg,image/png,image/webp" (change)="onAvatarSelected($event)" hidden />
+          <label for="avatarInput" class="avatar-upload-button">
+            Elegir fotografía
+          </label>
+
+          <input
+            id="avatarInput"
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            (change)="onAvatarSelected($event)"
+            hidden
+          />
+
           @if (selectedFile) {
-            <button type="button" class="upload-button" [disabled]="uploadingAvatar" (click)="uploadAvatar()">
+            <button
+              type="button"
+              class="upload-button"
+              [disabled]="uploadingAvatar"
+              (click)="uploadAvatar()"
+            >
               {{ uploadingAvatar ? 'Subiendo fotografía...' : 'Guardar fotografía' }}
             </button>
           }
         }
       </div>
 
-      <h1>{{ isOwnProfile ? '¡Hola, ' + (displayName || username || 'ARMY') + '!' : (displayName || username || 'Perfil ARMY') }}</h1>
-      <p>{{ isOwnProfile ? 'Este es tu pequeño rincón personal en Bangtan Olé.' : (username ? '@' + username : 'Comunidad Bangtan Olé') }}</p>
+      <h1>
+        {{ isOwnProfile
+          ? '¡Hola, ' + (displayName || username || 'ARMY') + '!'
+          : (displayName || username || 'Perfil ARMY')
+        }}
+      </h1>
+
+      <p>
+        {{ isOwnProfile
+          ? 'Este es tu pequeño rincón personal en Bangtan Olé.'
+          : (username ? '@' + username : 'Comunidad Bangtan Olé')
+        }}
+      </p>
     </header>
 
     @if (loading) {
       <div class="message">Cargando perfil...</div>
-    } @else if (errorMessage) {
+
+    } @else if (errorMessage && !profile) {
       <div class="error-message">{{ errorMessage }}</div>
-    } @else if (isOwnProfile) {
-      <form (ngSubmit)="saveProfile()">
-        <section class="profile-section">
-          <h2>Mis datos personales</h2>
-          <div class="form-group">
-            <label for="username">Nombre de usuario</label>
-            <input id="username" type="text" name="username" [(ngModel)]="username" placeholder="Tu nombre de usuario" maxlength="30" />
-          </div>
-          <div class="form-group">
-            <label for="displayName">Nombre</label>
-            <input id="displayName" type="text" name="displayName" [(ngModel)]="displayName" placeholder="¿Cómo quieres que te llamemos?" maxlength="50" />
-          </div>
-          <div class="form-group">
-            <label for="email">Correo electrónico</label>
-            <input id="email" type="email" name="email" [value]="email" disabled />
-            <small>El correo está vinculado a tu cuenta.</small>
-          </div>
-          <div class="form-group">
-            <label for="bio">Sobre mí</label>
-            <textarea id="bio" name="bio" [(ngModel)]="bio" placeholder="Cuéntanos algo sobre ti..." rows="4" maxlength="300"></textarea>
-            <small>{{ bio.length }} / 300 caracteres</small>
-          </div>
-        </section>
-        @if (successMessage) { <div class="success-message">{{ successMessage }}</div> }
-        <button type="submit" class="save-button" [disabled]="saving">{{ saving ? 'Guardando...' : 'Guardar cambios' }}</button>
-      </form>
-    } @else {
-      <section class="profile-section public-profile-bio">
-        <h2>Sobre mí</h2>
-        <p>{{ bio || 'Esta persona todavía no ha añadido una descripción.' }}</p>
+
+    } @else if (profile) {
+
+      <!-- ESTADÍSTICAS SOCIALES -->
+
+      <section class="profile-social">
+
+        <div class="profile-stats">
+
+          <button
+            type="button"
+            class="profile-stat"
+            (click)="openSocialList('followers')"
+            [attr.aria-expanded]="socialListType === 'followers'"
+          >
+            <strong>{{ followersCount }}</strong>
+            <span>Seguidores</span>
+          </button>
+
+          <button
+            type="button"
+            class="profile-stat"
+            (click)="openSocialList('following')"
+            [attr.aria-expanded]="socialListType === 'following'"
+          >
+            <strong>{{ followingCount }}</strong>
+            <span>Seguidos</span>
+          </button>
+
+        </div>
+
+        @if (!isOwnProfile) {
+          <button
+            type="button"
+            class="follow-button"
+            [class.following]="isFollowingUser"
+            [disabled]="followLoading"
+            (click)="toggleFollow()"
+          >
+            @if (followLoading) {
+              Actualizando...
+            } @else if (isFollowingUser) {
+              Siguiendo
+            } @else {
+              Seguir
+            }
+          </button>
+        }
+
       </section>
+
+      <!-- POPUP DE SEGUIDORES Y SEGUIDOS -->
+
+
+      <!-- POPUP DE SEGUIDORES Y SEGUIDOS -->
+
+      @if (socialListType) {
+        <div
+          class="social-modal-backdrop"
+          (click)="closeSocialList()"
+          (keydown.escape)="closeSocialList()"
+        >
+          <section
+            class="social-list-section"
+            role="dialog"
+            aria-modal="true"
+            [attr.aria-label]="socialListType === 'followers' ? 'Lista de seguidores' : 'Lista de seguidos'"
+            (click)="$event.stopPropagation()"
+          >
+
+            <div class="social-list-header">
+              <div>
+                <h2>Tu comunidad</h2>
+                <small>Descubre quién está contigo en Bangtan Olé</small>
+              </div>
+
+              <button
+                type="button"
+                class="social-close-button"
+                (click)="closeSocialList()"
+                aria-label="Cerrar lista"
+              >
+                <span class="bo-x" aria-hidden="true"></span>
+              </button>
+            </div>
+
+            <!-- PESTAÑAS -->
+            <div class="social-modal-tabs" role="tablist" aria-label="Listas sociales">
+
+              <button
+                type="button"
+                class="social-modal-tab"
+                [class.active]="socialListType === 'followers'"
+                [attr.aria-selected]="socialListType === 'followers'"
+                role="tab"
+                (click)="openSocialList('followers')"
+              >
+                Seguidores
+                <span>{{ followersCount }}</span>
+              </button>
+
+              <button
+                type="button"
+                class="social-modal-tab"
+                [class.active]="socialListType === 'following'"
+                [attr.aria-selected]="socialListType === 'following'"
+                role="tab"
+                (click)="openSocialList('following')"
+              >
+                Seguidos
+                <span>{{ followingCount }}</span>
+              </button>
+
+            </div>
+
+            <!-- CONTENIDO DE LA LISTA -->
+            <div class="social-modal-content">
+
+              @if (socialListLoading) {
+                <div class="message">Cargando personas...</div>
+
+              } @else if (socialListError) {
+                <div class="error-message">{{ socialListError }}</div>
+
+              } @else if (socialUsers.length === 0) {
+                <div class="social-empty">
+                  @if (socialListType === 'followers') {
+                    Todavía no tiene seguidores.
+                  } @else {
+                    Todavía no sigue a nadie.
+                  }
+                </div>
+
+              } @else {
+
+                <div class="social-search-box">
+                  <span class="bo-search social-search-icon" aria-hidden="true"></span>
+                  <input
+                    type="search"
+                    name="socialSearch"
+                    [(ngModel)]="socialSearch"
+                    placeholder="Buscar por nombre o usuario..."
+                    aria-label="Buscar en esta lista"
+                  />
+                  @if (socialSearch) {
+                    <button
+                      type="button"
+                      class="social-search-clear"
+                      (click)="socialSearch = ''"
+                      aria-label="Limpiar búsqueda"
+                    ><span class="bo-x" aria-hidden="true"></span></button>
+                  }
+                </div>
+
+                @if (filteredSocialUsers.length === 0) {
+                  <div class="social-empty">
+                    No encontramos personas con esa búsqueda.
+                  </div>
+                } @else {
+                  <div class="social-users">
+                    @for (person of filteredSocialUsers; track person.id) {
+                      <div class="social-user">
+                        <button
+                          type="button"
+                          class="social-user-open"
+                          (click)="openSocialUser(person)"
+                        >
+                          <div class="social-user-avatar">
+                            @if (person.avatar_url) {
+                              <img
+                                [src]="person.avatar_url"
+                                [alt]="'Avatar de ' + (person.display_name || person.username || 'usuario')"
+                              />
+                            } @else {
+                              <span>
+                                {{ (person.display_name || person.username || 'A').charAt(0).toUpperCase() }}
+                              </span>
+                            }
+                          </div>
+
+                          <div class="social-user-info">
+                            <strong>{{ person.display_name || person.username || 'Usuario ARMY' }}</strong>
+                            <small>{{ person.username ? '@' + person.username : 'Comunidad Bangtan Olé' }}</small>
+                          </div>
+                        </button>
+
+                        @if (person.id !== currentUserId) {
+                          <button
+                            type="button"
+                            class="social-follow-button"
+                            [class.following]="socialFollowStates[person.id]"
+                            [disabled]="socialFollowLoadingIds.has(person.id)"
+                            (click)="toggleSocialUserFollow(person)">
+                            @if (socialFollowLoadingIds.has(person.id)) {
+                              ...
+                            } @else {
+                              {{ socialFollowStates[person.id] ? 'Siguiendo' : 'Seguir' }}
+                            }
+                          </button>
+                        }
+                      </div>
+                    }
+                  </div>
+                }
+              }
+
+            </div>
+
+          </section>
+        </div>
+      }
+
+
+      <!-- PERFIL PROPIO -->
+
+      @if (isOwnProfile) {
+
+        <form (ngSubmit)="saveProfile()">
+
+          <section class="profile-section">
+            <h2>Mis datos personales</h2>
+
+            <div class="form-group">
+              <label for="username">Nombre de usuario</label>
+              <input
+                id="username"
+                type="text"
+                name="username"
+                [(ngModel)]="username"
+                placeholder="Tu nombre de usuario"
+                maxlength="30"
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="displayName">Nombre</label>
+              <input
+                id="displayName"
+                type="text"
+                name="displayName"
+                [(ngModel)]="displayName"
+                placeholder="¿Cómo quieres que te llamemos?"
+                maxlength="50"
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="email">Correo electrónico</label>
+              <input
+                id="email"
+                type="email"
+                name="email"
+                [value]="email"
+                disabled
+              />
+              <small>El correo está vinculado a tu cuenta.</small>
+            </div>
+
+            <div class="form-group">
+              <label for="bio">Sobre mí</label>
+              <textarea
+                id="bio"
+                name="bio"
+                [(ngModel)]="bio"
+                placeholder="Cuéntanos algo sobre ti..."
+                rows="4"
+                maxlength="300"
+              ></textarea>
+              <small>{{ bio.length }} / 300 caracteres</small>
+            </div>
+          </section>
+
+          @if (successMessage) {
+            <div class="success-message">{{ successMessage }}</div>
+          }
+
+          @if (errorMessage) {
+            <div class="error-message">{{ errorMessage }}</div>
+          }
+
+          <button
+            type="submit"
+            class="save-button"
+            [disabled]="saving"
+          >
+            {{ saving ? 'Guardando...' : 'Guardar cambios' }}
+          </button>
+
+        </form>
+
+      } @else {
+
+        <!-- PERFIL PÚBLICO -->
+
+        <section class="profile-section public-profile-bio">
+          <h2>Sobre mí</h2>
+          <p>
+            {{ bio || 'Esta persona todavía no ha añadido una descripción.' }}
+          </p>
+        </section>
+
+        @if (errorMessage) {
+          <div class="error-message">{{ errorMessage }}</div>
+        }
+
+      }
+
     }
+
   </main>
 </div>

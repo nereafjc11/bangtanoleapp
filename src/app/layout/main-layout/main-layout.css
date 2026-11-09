@@ -298,13 +298,9 @@
 
 /* CATEGORÍAS PERSONALIZADAS */
 
-.nav-category-dot {
-  width: 9px;
-  height: 9px;
-  min-width: 9px;
-  border-radius: 50%;
-  background: #ad83d4;
-  margin-left: 7px;
+/* Los intereses utilizan la misma familia de iconos del menú. */
+.sidebar-nav .nav-icon {
+  color: #7045a0;
 }
 
 .nav-message {
@@ -486,4 +482,355 @@
 @media (max-width: 650px) {
   .search-dropdown { position: fixed; top: 76px; left: 12px; right: 12px; max-height: calc(100vh - 95px); }
   .search-box input { font-size: 16px; }
+}
+
+
+/* SEGUIMIENTO DIRECTO EN EL BUSCADOR */
+.search-user-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px;
+  border-radius: 12px;
+}
+.search-user-row:hover { background: #f5effc; }
+.search-user-open { flex: 1; min-width: 0; }
+.search-follow-button,
+.social-follow-button {
+  flex-shrink: 0;
+  padding: 8px 13px;
+  border: 1px solid #7544ad;
+  border-radius: 20px;
+  background: #7544ad;
+  color: #fff;
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: .2s;
+}
+.search-follow-button:hover:not(:disabled),
+.social-follow-button:hover:not(:disabled) { background: #60358f; }
+.search-follow-button.following,
+.social-follow-button.following { background: #fff; color: #7544ad; }
+.search-follow-button:disabled,
+.social-follow-button:disabled { opacity: .6; cursor: wait; }
+@media (max-width: 380px) {
+  .search-follow-button { padding: 7px 9px; font-size: 10px; }
+}
+
+
+/* =========================================
+   CENTRO DE NOTIFICACIONES
+========================================= */
+
+.notification-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.notification-button {
+  display: grid;
+  place-items: center;
+  min-width: 38px;
+  min-height: 38px;
+  padding: 4px;
+  border-radius: 50%;
+  transition: background .2s;
+}
+
+.notification-button:hover,
+.notification-button[aria-expanded="true"] {
+  background: #f2eaff;
+}
+
+.notification-count {
+  position: absolute;
+  top: -3px;
+  right: -5px;
+  min-width: 19px;
+  height: 19px;
+  display: grid;
+  place-items: center;
+  padding: 0 5px;
+  border: 2px solid #fff;
+  border-radius: 12px;
+  background: #7544ad;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.notifications-panel {
+  position: absolute;
+  top: calc(100% + 17px);
+  right: -55px;
+  z-index: 100;
+  width: min(370px, calc(100vw - 28px));
+  max-height: min(520px, calc(100vh - 110px));
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid #eadcf7;
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: 0 16px 42px rgba(65, 35, 91, .2);
+}
+
+.notifications-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 17px 18px 13px;
+  border-bottom: 1px solid #f0e9f6;
+}
+
+.notifications-header > div {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.notifications-header strong {
+  color: #7045a0;
+  font-size: 17px;
+  font-weight: 900;
+}
+
+.notifications-header small {
+  color: #9989a5;
+  font-size: 11px;
+}
+
+.notifications-close {
+  width: 30px;
+  height: 30px;
+  border: 0;
+  border-radius: 50%;
+  background: #f2eaff;
+  color: #7544ad;
+  font-size: 21px;
+  cursor: pointer;
+}
+
+.notifications-read-all,
+.notifications-retry {
+  align-self: flex-end;
+  margin: 9px 15px;
+  padding: 7px 10px;
+  border: 0;
+  border-radius: 15px;
+  background: #f2eaff;
+  color: #7045a0;
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.notifications-list {
+  overflow-y: auto;
+  padding: 4px 9px 12px;
+}
+
+.notification-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 11px 9px;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  text-align: left;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.notification-item:hover {
+  background: #f8f3fd;
+}
+
+.notification-item.unread {
+  background: #f7f0ff;
+}
+
+.notification-item img,
+.notification-avatar-fallback {
+  width: 42px;
+  height: 42px;
+  flex: 0 0 42px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: #eadcf9;
+}
+
+.notification-avatar-fallback {
+  display: grid;
+  place-items: center;
+  color: #7544ad;
+  font-weight: 900;
+}
+
+.notification-copy {
+  min-width: 0;
+  flex: 1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 3px 4px;
+  color: #59466c;
+  font-size: 12px;
+}
+
+.notification-copy strong {
+  color: #7045a0;
+  font-weight: 900;
+}
+
+.notification-copy small {
+  width: 100%;
+  color: #9989a5;
+  font-size: 10px;
+}
+
+.notification-unread-dot {
+  width: 8px;
+  height: 8px;
+  flex: 0 0 8px;
+  border-radius: 50%;
+  background: #7544ad;
+}
+
+.notifications-state {
+  margin: 0;
+  padding: 24px 18px;
+  color: #8e7d9d;
+  font-size: 12px;
+  text-align: center;
+}
+
+.notifications-error {
+  color: #a04465;
+}
+
+.notifications-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 7px;
+  padding: 30px 18px;
+  text-align: center;
+}
+
+.notifications-empty > span {
+  color: #b18bd6;
+  font-size: 34px;
+}
+
+.notifications-empty strong {
+  color: #7045a0;
+  font-size: 14px;
+}
+
+.notifications-empty small {
+  color: #9989a5;
+  font-size: 11px;
+}
+
+@media (max-width: 650px) {
+  .notifications-panel {
+    position: fixed;
+    top: 72px;
+    right: 10px;
+    width: min(370px, calc(100vw - 20px));
+    max-height: calc(100vh - 88px);
+  }
+}
+
+/* COMPORTAMIENTO DE LA CAMPANITA */
+
+.notification-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.notification-button {
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.notifications-panel {
+  pointer-events: auto;
+}
+
+
+/* =========================================
+   BANGTAN ICONS
+========================================= */
+
+.nav-icon,
+.notification-button > [class^="bo-"],
+.notification-button > [class*=" bo-"],
+.menu-toggle > [class^="bo-"],
+.search-icon,
+.clear-search > [class^="bo-"],
+.notifications-close > [class^="bo-"],
+.notifications-empty > .bo-heart {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+.nav-icon {
+  flex: 0 0 23px;
+  width: 23px;
+  font-size: 20px;
+}
+
+.menu-toggle > .bo-menu {
+  display: inline-block;
+  line-height: 1;
+}
+
+.search-icon {
+  flex: 0 0 auto;
+  font-size: 18px;
+}
+
+.clear-search {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+.clear-search.bo-x {
+  font-size: 15px;
+}
+
+.notification-button > .bo-bell {
+  display: inline-block;
+  line-height: 1;
+}
+
+.notifications-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.notifications-close > .bo-x {
+  font-size: 15px;
+}
+
+.notifications-empty > .bo-heart {
+  display: inline-block;
+  font-size: 34px;
+  line-height: 1;
 }

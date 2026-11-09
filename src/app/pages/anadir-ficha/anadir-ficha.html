@@ -1,0 +1,123 @@
+<main class="add-page">
+  <a class="back-link" routerLink="/peliculas-series">← Volver a Películas y series</a>
+  <header class="page-heading">
+    <span class="eyebrow">BANGTAN OLÉ · COMUNIDAD</span>
+    <h1>Añadir ficha</h1>
+    <p>Comparte con la comunidad una película o serie que todavía no esté en nuestro catálogo.</p>
+  </header>
+
+  <form class="add-form" (ngSubmit)="save()">
+    <div class="field">
+      <label for="content-type">Tipo de contenido</label>
+      <select id="content-type" [(ngModel)]="type" name="type" (ngModelChange)="onTitleChange()">
+        <option value="movie">Película</option>
+        <option value="tv">Serie o drama</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label for="title">Título *</label>
+      <input id="title" name="title" [(ngModel)]="title" (ngModelChange)="onTitleChange()"
+        placeholder="Escribe el título" maxlength="180" required>
+      <small>Comprobaremos si ya existe en TMDB y en el catálogo de la comunidad.</small>
+    </div>
+
+    @if (checking) { <p class="status">Comprobando coincidencias…</p> }
+
+    @if (tmdbResults.length) {
+      <section class="matches">
+        <h2>Resultados de TMDB</h2>
+        <p class="muted">Selecciona uno si quieres aprovechar sus datos. También puedes continuar sin seleccionarlo.</p>
+        <div class="tmdb-list">
+          @for (item of tmdbResults; track item.id) {
+            <button type="button" class="tmdb-result" [class.selected]="selectedTmdb?.id === item.id"
+              (click)="chooseTmdb(item)">
+              <img [src]="tmdb.getPoster(item.poster_path, 'w185')" [alt]="item.title || item.name || 'Póster'">
+              <span><strong>{{ item.title || item.name }}</strong><small>{{ (item.release_date || item.first_air_date || '').slice(0, 4) || 'Año desconocido' }}</small></span>
+            </button>
+          }
+        </div>
+      </section>
+    }
+
+    <div class="field">
+      <label for="original-title">Título original</label>
+      <input id="original-title" name="originalTitle" [(ngModel)]="originalTitle" maxlength="180">
+    </div>
+    <div class="field">
+      <label for="year">Año de estreno</label>
+      <input id="year" name="year" type="number" min="1800" max="2200" [(ngModel)]="year">
+    </div>
+    <div class="field">
+      <label for="overview">Sinopsis</label>
+      <textarea id="overview" name="overview" rows="5" [(ngModel)]="overview" maxlength="4000"
+        placeholder="Cuéntanos brevemente de qué trata…"></textarea>
+    </div>
+    <div class="field">
+      <label for="country">País de origen</label>
+      <input id="country" name="country" [(ngModel)]="country" placeholder="Ej. Corea del Sur">
+    </div>
+    <div class="field">
+      <label for="genres">Géneros</label>
+      <input id="genres" name="genresText" [(ngModel)]="genresText" placeholder="Drama, romance, comedia…">
+      <small>Separa los géneros con comas.</small>
+    </div>
+    <div class="field">
+      <label for="poster">Póster (opcional)</label>
+      <input id="poster" type="file" accept="image/jpeg,image/png,image/webp" (change)="onPosterSelected($event)">
+      <small>JPG, PNG o WEBP. Máximo 5 MB.</small>
+      @if (posterPreview) {
+        <div class="poster-preview"><img [src]="posterPreview" alt="Vista previa del póster">
+          <button type="button" class="text-button" (click)="removePoster()">Quitar imagen</button></div>
+      }
+    </div>
+
+    @if (notice) { <p class="notice">{{ notice }}</p> }
+    @if (error) { <p class="error" role="alert">{{ error }}</p> }
+
+    <button class="primary-button" type="submit" [disabled]="saving || checking">
+      {{ saving ? 'Publicando…' : 'Publicar ficha' }}
+    </button>
+    <p class="fine-print">Al publicar, la ficha aparecerá inmediatamente en el catálogo comunitario.</p>
+  </form>
+
+  @if (showDuplicate && duplicateItem) {
+    <div class="modal-backdrop" role="presentation">
+      <section class="dialog" role="dialog" aria-modal="true" aria-labelledby="duplicate-title">
+        <h2 id="duplicate-title">Este contenido ya existe</h2>
+        <div class="dialog-item">
+          @if (duplicateItem.poster_url) { <img [src]="duplicateItem.poster_url" [alt]="duplicateItem.title"> }
+          <div><strong>{{ duplicateItem.title }}</strong><p>{{ duplicateItem.release_year || 'Año desconocido' }} · {{ duplicateItem.content_type === 'movie' ? 'Película' : 'Serie' }}</p></div>
+        </div>
+        <p>Ya hay una ficha comunitaria con ese título y año.</p>
+        <div class="dialog-actions">
+          <button type="button" class="primary-button" (click)="openExisting()">Abrir ficha existente</button>
+          <button type="button" class="secondary-button" (click)="showDuplicate = false">Volver y editar</button>
+        </div>
+      </section>
+    </div>
+  }
+
+  @if (showSimilar) {
+    <div class="modal-backdrop" role="presentation">
+      <section class="dialog similar-dialog" role="dialog" aria-modal="true" aria-labelledby="similar-title">
+        <h2 id="similar-title">Hemos encontrado títulos similares</h2>
+        <p>Comprueba que tu ficha no sea la misma obra con una variación del título.</p>
+        <div class="similar-list">
+          @for (item of communityMatches; track item.id) {
+            <article class="similar-item">
+              @if (item.poster_url) { <img [src]="item.poster_url" [alt]="item.title"> }
+              <div><strong>{{ item.title }}</strong><small>{{ item.release_year || 'Año desconocido' }} · {{ item.content_type === 'movie' ? 'Película' : 'Serie' }}</small></div>
+            </article>
+          }
+        </div>
+        <label class="confirm-check"><input type="checkbox" [(ngModel)]="confirmedDifferent" name="confirmedDifferent">
+          He revisado los títulos y confirmo que mi contenido es diferente.</label>
+        <div class="dialog-actions">
+          <button type="button" class="primary-button" [disabled]="!confirmedDifferent" (click)="confirmDifferent()">Continuar</button>
+          <button type="button" class="secondary-button" (click)="showSimilar = false">Volver a revisar</button>
+        </div>
+      </section>
+    </div>
+  }
+</main>

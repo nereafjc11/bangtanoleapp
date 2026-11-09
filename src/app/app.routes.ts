@@ -1,69 +1,63 @@
-
 import { Routes } from '@angular/router';
 
 export const routes: Routes = [
   {
     path: 'auth/login',
-    loadComponent: () =>
-      import('./pages/login/login').then((m) => m.Login),
+    loadComponent: () => import('./pages/login/login').then((m) => m.Login),
     data: { mode: 'login' },
   },
   {
     path: 'auth/register',
-    loadComponent: () =>
-      import('./pages/login/login').then((m) => m.Login),
+    loadComponent: () => import('./pages/login/login').then((m) => m.Login),
     data: { mode: 'register' },
   },
   {
     path: 'preferences',
-    loadComponent: () =>
-      import('./pages/preferences/preferences').then(
-        (m) => m.Preferences
-      ),
+    loadComponent: () => import('./pages/preferences/preferences').then((m) => m.Preferences),
   },
   {
     path: '',
-    loadComponent: () =>
-      import('./layout/main-layout/main-layout').then(
-        (m) => m.MainLayout
-      ),
+    loadComponent: () => import('./layout/main-layout/main-layout').then((m) => m.MainLayout),
     children: [
       {
         path: 'home',
-        loadComponent: () =>
-          import('./pages/home/home').then((m) => m.Home),
+        loadComponent: () => import('./pages/home/home').then((m) => m.Home),
       },
       {
         path: 'explorar',
+        loadComponent: () => import('./pages/explorar/explorar').then((m) => m.Explorar),
+      },
+      {
+        path: 'peliculas-series',
         loadComponent: () =>
-          import('./pages/explorar/explorar').then(
-            (m) => m.Explorar
-          ),
+          import('./pages/peliculas-series/peliculas-series').then((m) => m.PeliculasSeries),
       },
       {
         path: 'contenido/:type/:id',
         loadComponent: () =>
-          import('./pages/contenido-detalle/contenido-detalle')
-            .then((m) => m.ContenidoDetalle),
+          import('./pages/contenido-detalle/contenido-detalle').then((m) => m.ContenidoDetalle),
       },
       {
         path: 'profile/:id',
-        loadComponent: () =>
-          import('./pages/profile/profile').then(
-            (m) => m.Profile
-          ),
+        loadComponent: () => import('./pages/profile/profile').then((m) => m.Profile),
       },
       {
         path: 'profile',
-        loadComponent: () =>
-          import('./pages/profile/profile').then(
-            (m) => m.Profile
-          ),
+        loadComponent: () => import('./pages/profile/profile').then((m) => m.Profile),
       },
       {
         path: '',
         redirectTo: 'home',
         pathMatch: 'full',
+      },
+      {
+        path: 'peliculas-series/anadir',
+        loadComponent: () => import('./pages/anadir-ficha/anadir-ficha').then((m) => m.AnadirFicha),
+      },
+      {
+        path: 'ficha-comunidad/:id',
+        loadComponent: () =>
+          import('./pages/ficha-comunidad/ficha-comunidad').then((m) => m.FichaComunidad),
       },
     ],
   },
