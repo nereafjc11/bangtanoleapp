@@ -60,6 +60,26 @@ export class ProfileService {
     return data as UserProfile;
   }
 
+  async getPublicProfiles(userIds: string[]): Promise<UserProfile[]> {
+    const uniqueIds = [...new Set(userIds)].filter(Boolean);
+
+    if (!uniqueIds.length) {
+      return [];
+    }
+
+    const { data, error } = await this.supabaseService.client
+      .from('profiles')
+      .select('id, username, display_name, avatar_url, bio, created_at, updated_at')
+      .in('id', uniqueIds);
+
+    if (error) {
+      console.error('Error al recuperar los perfiles públicos:', error);
+      throw error;
+    }
+
+    return (data ?? []) as UserProfile[];
+  }
+
   async updateMyProfile(
     profile: Pick<UserProfile, 'username' | 'display_name' | 'bio'>
   ): Promise<void> {

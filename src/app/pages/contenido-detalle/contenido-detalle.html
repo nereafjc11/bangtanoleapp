@@ -1,1 +1,462 @@
-<p>contenido-detalle works!</p>
+
+<main class="detail-page">
+
+  <a class="back-link" routerLink="/peliculas-series">
+    ← Volver a películas y series
+  </a>
+
+  @if (loading) {
+    <div class="state-panel">
+      <span class="loading-dot"></span>
+      Cargando ficha...
+    </div>
+  } @else if (error && !content) {
+    <div class="state-panel error" role="alert">
+      {{ error }}
+    </div>
+  } @else if (content) {
+
+    @if (backdropUrl) {
+      <section
+        class="detail-hero"
+        [style.backgroundImage]="'linear-gradient(90deg, rgba(22, 13, 35, .96), rgba(22, 13, 35, .68)), url(' + backdropUrl + ')'">
+
+        <div class="hero-content">
+          <img
+            class="poster"
+            [src]="posterUrl"
+            [alt]="'Póster de ' + title">
+
+          <div class="hero-copy">
+
+            <span class="content-type">
+              {{ type === 'movie' ? 'PELÍCULA' : 'SERIE' }}
+            </span>
+
+            <h1>
+              {{ title }}
+              <span>{{ year ? '(' + year + ')' : '' }}</span>
+            </h1>
+
+            @if (originalTitle && originalTitle !== title) {
+              <p class="original-title">{{ originalTitle }}</p>
+            }
+
+            @if (content.tagline) {
+              <p class="tagline">{{ content.tagline }}</p>
+            }
+
+            <div class="metadata">
+              @if (year) {
+                <span>{{ year }}</span>
+              }
+
+              @if (duration) {
+                <span>{{ duration }}</span>
+              }
+
+              @if (content.vote_average) {
+                <span>
+                  TMDB ★ {{ content.vote_average | number:'1.1-1' }}/10
+                </span>
+              }
+            </div>
+
+            @if (genres.length) {
+              <div class="genres">
+                @for (genre of genres; track genre) {
+                  <span>{{ genre }}</span>
+                }
+              </div>
+            }
+
+            <p class="overview">
+              {{ content.overview || 'Todavía no hay una sinopsis disponible.' }}
+            </p>
+
+            <button
+              type="button"
+              class="favorite-button"
+              [class.active]="isFavorite"
+              [disabled]="favoriteLoading"
+              (click)="toggleFavorite()">
+
+              <i class="bo-heart" aria-hidden="true"></i>
+
+              {{ isFavorite ? 'En tus favoritos' : 'Añadir a favoritos' }}
+            </button>
+
+          </div>
+        </div>
+      </section>
+
+    } @else {
+
+      <section class="detail-hero no-backdrop">
+        <div class="hero-content">
+
+          <img
+            class="poster"
+            [src]="posterUrl"
+            [alt]="'Póster de ' + title">
+
+          <div class="hero-copy">
+
+            <span class="content-type">
+              {{ type === 'movie' ? 'PELÍCULA' : 'SERIE' }}
+            </span>
+
+            <h1>
+              {{ title }}
+              <span>{{ year ? '(' + year + ')' : '' }}</span>
+            </h1>
+
+            <p class="overview">
+              {{ content.overview || 'Sin sinopsis disponible.' }}
+            </p>
+
+            <button
+              type="button"
+              class="favorite-button"
+              [class.active]="isFavorite"
+              [disabled]="favoriteLoading"
+              (click)="toggleFavorite()">
+
+              <i class="bo-heart" aria-hidden="true"></i>
+
+              {{ isFavorite ? 'En tus favoritos' : 'Añadir a favoritos' }}
+            </button>
+
+          </div>
+        </div>
+      </section>
+    }
+
+    <section class="detail-columns">
+
+      <div class="main-column">
+
+        <section class="detail-panel">
+
+          <h2>Tu opinión</h2>
+
+          <p class="section-description">
+            Comparte con la comunidad qué te ha parecido.
+          </p>
+
+          <div class="review-form">
+
+            <label class="rating-label">
+              Tu puntuación
+            </label>
+
+            <div
+              class="star-rating"
+              role="group"
+              aria-label="Selecciona tu puntuación">
+
+              @for (star of [1, 2, 3, 4, 5]; track star) {
+
+                <span class="star-control">
+
+                  <button
+                    type="button"
+                    class="star-button"
+                    [class.filled]="rating >= star"
+                    [class.half-filled]="rating >= star - 0.5 && rating < star"
+                    [attr.aria-label]="'Puntuar con ' + star + ' estrellas'"
+                    (click)="rating = star">
+
+                    <i class="bo-star" aria-hidden="true"></i>
+
+                  </button>
+
+                  <button
+                    type="button"
+                    class="half-star-button"
+                    [attr.aria-label]="'Puntuar con ' + (star - 0.5) + ' estrellas'"
+                    (click)="rating = star - 0.5">
+                  </button>
+
+                </span>
+              }
+            </div>
+
+            <p class="rating-value">
+              {{ rating ? rating + '/5 estrellas' : 'Selecciona tu puntuación' }}
+            </p>
+
+            <label for="review">
+              Tu reseña
+            </label>
+
+            <textarea
+              id="review"
+              name="review"
+              [(ngModel)]="reviewText"
+              rows="5"
+              maxlength="3000"
+              placeholder="¿Qué te ha parecido? Puedes contar qué te ha gustado, qué destacarías o si la recomendarías...">
+            </textarea>
+
+            <div class="review-actions">
+
+              <button
+                type="button"
+                class="primary-button"
+                [disabled]="savingReview"
+                (click)="saveReview()">
+
+                {{
+                  savingReview
+                    ? 'Guardando...'
+                    : (myReview ? 'Actualizar mi reseña' : 'Publicar reseña')
+                }}
+
+              </button>
+
+              @if (myReview) {
+                <button
+                  type="button"
+                  class="text-button"
+                  (click)="deleteReview()">
+
+                  Eliminar mi reseña
+
+                </button>
+              }
+
+            </div>
+          </div>
+        </section>
+
+        <section class="detail-panel community-reviews">
+
+          <div class="section-heading">
+
+            <div>
+              <h2>Opiniones de la comunidad</h2>
+
+              <p class="section-description">
+                {{ reviews.length }}
+                {{ reviews.length === 1 ? 'valoración' : 'valoraciones' }}
+              </p>
+            </div>
+
+            @if (reviews.length) {
+              <strong class="community-average">
+                ★ {{ averageRating | number:'1.1-1' }}/5
+              </strong>
+            }
+
+          </div>
+
+          @if (!reviews.length) {
+
+            <p class="empty-state">
+              Todavía no hay reseñas. ¡Puedes ser la primera en compartir tu opinión!
+            </p>
+
+          } @else {
+
+            <div class="review-list">
+
+              @for (review of reviews; track review.id) {
+
+                <article class="review-card">
+
+                  <div class="review-author">
+
+                    @if (review.profile?.avatar_url) {
+                      <img
+                        class="review-avatar"
+                        [src]="review.profile?.avatar_url"
+                        [alt]="'Foto de perfil de ' + getReviewAuthor(review)">
+                    } @else {
+                      <span class="review-avatar review-avatar-fallback" aria-hidden="true">
+                        {{ getReviewInitials(review) }}
+                      </span>
+                    }
+
+                    <div class="review-author-info">
+                      <strong>{{ getReviewAuthor(review) }}</strong>
+                      <small>{{ getReviewDate(review.created_at) }}</small>
+                    </div>
+
+                    <span class="review-card-rating">★ {{ review.rating }}/5</span>
+
+                  </div>
+
+                  @if (review.review_text) {
+                    <p>{{ review.review_text }}</p>
+                  }
+
+                </article>
+              }
+
+            </div>
+          }
+
+        </section>
+
+      </div>
+
+      <aside class="side-column">
+
+        <section class="detail-panel list-panel">
+
+          <h2>Mis listas</h2>
+
+          <p class="section-description">
+            Guarda esta película o serie en una de tus colecciones.
+          </p>
+
+          @if (listsLoading) {
+
+            <p class="empty-state">
+              Cargando tus listas...
+            </p>
+
+          } @else if (listsError) {
+
+            <p class="feedback error" role="alert">
+              {{ listsError }}
+            </p>
+
+            <button
+              type="button"
+              class="secondary-button full-button"
+              (click)="loadMyLists()">
+
+              Volver a cargar listas
+
+            </button>
+
+          } @else if (myLists.length > 0) {
+
+            <label for="listSelect">
+              Elige una lista
+            </label>
+
+            <select
+              id="listSelect"
+              name="listSelect"
+              [(ngModel)]="selectedListId">
+
+              <option value="">
+                Selecciona una lista
+              </option>
+
+              @for (list of myLists; track list.id) {
+                <option [value]="list.id">
+                  {{ list.name }}
+                </option>
+              }
+
+            </select>
+
+            <button
+              type="button"
+              class="primary-button full-button"
+              [disabled]="addingToList || !selectedListId"
+              (click)="addToList()">
+
+              {{ addingToList ? 'Añadiendo...' : 'Añadir a la lista' }}
+
+            </button>
+
+          } @else {
+
+            <p class="empty-state">
+              Todavía no tienes listas creadas.
+            </p>
+
+          }
+
+          <div class="new-list">
+
+            <label for="newList">
+              Crear una lista nueva
+            </label>
+
+            <input
+              id="newList"
+              name="newList"
+              type="text"
+              [(ngModel)]="newListName"
+              maxlength="80"
+              placeholder="Ej. Películas para ver">
+
+            <button
+              type="button"
+              class="secondary-button full-button"
+              [disabled]="creatingList || !newListName.trim()"
+              (click)="createList()">
+
+              {{ creatingList ? 'Creando...' : 'Crear lista y añadir' }}
+
+            </button>
+
+          </div>
+
+        </section>
+
+        <section class="detail-panel facts-panel">
+
+          <h2>Información</h2>
+
+          @if (content.status) {
+            <p>
+              <strong>Estado:</strong>
+              {{ content.status }}
+            </p>
+          }
+
+          @if (content.production_countries?.length) {
+            <p>
+              <strong>País:</strong>
+              {{ content.production_countries[0].name }}
+            </p>
+          }
+
+          @if (content.number_of_seasons) {
+            <p>
+              <strong>Temporadas:</strong>
+              {{ content.number_of_seasons }}
+            </p>
+          }
+
+          @if (content.number_of_episodes) {
+            <p>
+              <strong>Episodios:</strong>
+              {{ content.number_of_episodes }}
+            </p>
+          }
+
+          @if (content.original_language) {
+            <p>
+              <strong>Idioma original:</strong>
+              {{ content.original_language | uppercase }}
+            </p>
+          }
+
+        </section>
+
+      </aside>
+    </section>
+
+    @if (notice) {
+      <p class="feedback success" role="status">
+        {{ notice }}
+      </p>
+    }
+
+    @if (error) {
+      <p class="feedback error" role="alert">
+        {{ error }}
+      </p>
+    }
+
+  }
+
+</main>

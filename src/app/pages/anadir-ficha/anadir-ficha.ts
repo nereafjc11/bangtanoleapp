@@ -1,4 +1,3 @@
-
 import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -27,7 +26,6 @@ import {
   styleUrl: './anadir-ficha.css',
 })
 export class AnadirFicha implements OnInit, OnDestroy {
-
   categories: CommunityCategoryOption[] = [];
   loadingCategories = true;
 
@@ -48,6 +46,8 @@ export class AnadirFicha implements OnInit, OnDestroy {
   tmdbResults: CatalogItem[] = [];
   communityMatches: CommunityCatalogItem[] = [];
   selectedTmdb: CatalogItem | null = null;
+  similarTmdbPosterPath: string | null = null;
+  private similarPosterRequest = 0;
 
   checking = false;
   saving = false;
@@ -56,7 +56,12 @@ export class AnadirFicha implements OnInit, OnDestroy {
   notice = '';
 
   showDuplicate = false;
+  duplicateDismissed = false;
   duplicateItem: CommunityCatalogItem | null = null;
+
+  // Datos recuperados de TMDB para fichas antiguas.
+  duplicateTmdbPosterPath: string | null = null;
+  duplicateTmdbId: number | null = null;
 
   showSimilar = false;
   confirmedDifferent = false;
@@ -73,7 +78,6 @@ export class AnadirFicha implements OnInit, OnDestroy {
     private cdr: ChangeDetectorRef,
   ) {}
 
-  // CARGAR LAS CATEGORÍAS ELEGIDAS POR EL USUARIO
   async ngOnInit(): Promise<void> {
     this.loadingCategories = true;
     this.error = '';
@@ -84,18 +88,14 @@ export class AnadirFicha implements OnInit, OnDestroy {
         this.preferencesService.getMyPreferences(),
       ]);
 
-      const selected = available.filter(category =>
-        selectedIds.includes(Number(category.id))
+      const selected = available.filter((category) => selectedIds.includes(Number(category.id)));
+
+      const selectedSlugs = selected.map((category) =>
+        this.normalizeCategory(`${category.slug} ${category.name}`),
       );
 
-      const selectedSlugs = selected.map(category =>
-        this.normalizeCategory(`${category.slug} ${category.name}`)
-      );
-
-      this.categories = COMMUNITY_CATEGORIES.filter(option =>
-        selectedSlugs.some(slug =>
-          this.matchesPreference(option.id, slug)
-        )
+      this.categories = COMMUNITY_CATEGORIES.filter((option) =>
+        selectedSlugs.some((slug) => this.matchesPreference(option.id, slug)),
       );
 
       if (this.categories.length > 0) {
@@ -104,17 +104,11 @@ export class AnadirFicha implements OnInit, OnDestroy {
         this.error =
           'No tienes categorías seleccionadas. Ve a tu perfil y elige tus intereses para poder crear fichas.';
       }
-
     } catch (error) {
-      console.error('Error cargando las categorías personales:', error);
-
-      this.error =
-        'No hemos podido cargar tus categorías. Recarga la página e inténtalo de nuevo.';
-
+      console.error('Error cargando las categorías:', error);
+      this.error = 'No hemos podido cargar tus categorías. Recarga la página e inténtalo de nuevo.';
     } finally {
       this.loadingCategories = false;
-
-      // Actualizar la vista al terminar la consulta.
       this.cdr.detectChanges();
     }
   }
@@ -127,11 +121,7 @@ export class AnadirFicha implements OnInit, OnDestroy {
       .replace(/[^a-z0-9]/g, '');
   }
 
-  private matchesPreference(
-    id: CommunityCategory,
-    slug: string
-  ): boolean {
-
+  private matchesPreference(id: CommunityCategory, slug: string): boolean {
     const aliases: Record<CommunityCategory, string[]> = {
       movie: ['peliculasserie', 'peliculas', 'cine', 'series'],
       tv: ['peliculasserie', 'peliculas', 'cine', 'series'],
@@ -143,12 +133,10 @@ export class AnadirFicha implements OnInit, OnDestroy {
       other: ['otros', 'otro', 'other'],
     };
 
-    return aliases[id].some(alias => slug.includes(alias));
+    return aliases[id].some((alias) => slug.includes(alias));
   }
 
-  // ICONOS DE BANGTAN OLÉ
   getCategoryFeatherIcon(id: CommunityCategory): string {
-
     const icons: Record<CommunityCategory, string> = {
       movie: 'bo-film',
       tv: 'bo-film',
@@ -165,8 +153,8 @@ export class AnadirFicha implements OnInit, OnDestroy {
 
   get selectedCategory(): CommunityCategoryOption {
     return (
-      this.categories.find(x => x.id === this.category) ??
-      COMMUNITY_CATEGORIES.find(x => x.id === this.category)!
+      this.categories.find((x) => x.id === this.category) ??
+      COMMUNITY_CATEGORIES.find((x) => x.id === this.category)!
     );
   }
 
@@ -179,32 +167,27 @@ export class AnadirFicha implements OnInit, OnDestroy {
   }
 
   get previewSubtitle(): string {
-    return [
-      this.year ? String(this.year) : '',
-      this.selectedCategory.label,
-    ]
+    return [this.year ? String(this.year) : '', this.selectedCategory.label]
       .filter(Boolean)
       .join(' · ');
   }
 
-  // CAMBIAR CATEGORÍA
   selectCategory(category: CommunityCategory): void {
-
-    if (!this.categories.some(item => item.id === category)) {
-      return;
-    }
-
+    if (!this.categories.some((item) => item.id === category)) return;
     if (this.category === category) return;
 
     this.category = category;
     this.details = {};
-
     this.selectedTmdb = null;
     this.tmdbResults = [];
     this.communityMatches = [];
+    this.similarTmdbPosterPath = null;
 
     this.showSimilar = false;
     this.showDuplicate = false;
+    this.duplicateItem = null;
+    this.duplicateTmdbId = null;
+    this.duplicateTmdbPosterPath = null;
     this.confirmedDifferent = false;
 
     this.notice = '';
@@ -217,17 +200,22 @@ export class AnadirFicha implements OnInit, OnDestroy {
     this.originalTitle = '';
     this.year = null;
   }
+  dismissDuplicate(): void {
+  this.showDuplicate = false;
+  this.duplicateDismissed = true;
+}
 
-  // BÚSQUEDA DE TÍTULOS
   onTitleChange(): void {
-
     this.error = '';
     this.notice = '';
     this.showSimilar = false;
+    this.showDuplicate = false;
+    this.duplicateItem = null;
+    this.duplicateTmdbId = null;
+    this.duplicateTmdbPosterPath = null;
     this.confirmedDifferent = false;
-
     this.selectedTmdb = null;
-
+    this.duplicateDismissed = false;
     if (this.searchTimer) {
       clearTimeout(this.searchTimer);
     }
@@ -237,6 +225,7 @@ export class AnadirFicha implements OnInit, OnDestroy {
     if (!this.usesTmdb || value.length < 2) {
       this.tmdbResults = [];
       this.communityMatches = [];
+      this.similarTmdbPosterPath = null;
       return;
     }
 
@@ -246,49 +235,48 @@ export class AnadirFicha implements OnInit, OnDestroy {
   }
 
   async checkMatches(value = this.title.trim()): Promise<void> {
-
     if (!this.usesTmdb || value.length < 2) return;
 
     const request = ++this.searchRequest;
     this.checking = true;
 
     try {
-
       const [tmdbResults, communityMatches] = await Promise.all([
-        this.tmdb.search(
-          value,
-          this.category as 'movie' | 'tv'
-        ).catch(() => [] as CatalogItem[]),
+        this.tmdb.search(value, this.category as 'movie' | 'tv').catch(() => [] as CatalogItem[]),
 
-        this.community.findMatches(
-          value,
-          this.category as 'movie' | 'tv'
-        ),
+        this.community.findMatches(value, this.category as 'movie' | 'tv'),
       ]);
 
       if (request !== this.searchRequest) return;
 
       this.tmdbResults = tmdbResults.slice(0, 8);
       this.communityMatches = communityMatches;
+      this.similarTmdbPosterPath = null;
+      if (communityMatches.length) {
+        void this.loadSimilarPoster(communityMatches[0]);
+      }
 
-      const exact = communityMatches.find(item =>
-        this.normalize(item.title) === this.normalize(value) &&
-        (item.release_year ?? 0) === (this.year ?? 0)
-      );
+      const exact = communityMatches.find((item) => {
+        const sameTitle = this.normalize(item.title) === this.normalize(value);
+
+        const sameYear = this.year === null || item.release_year === this.year;
+
+        return sameTitle && sameYear;
+      });
 
       if (exact) {
         this.duplicateItem = exact;
-        this.showDuplicate = true;
+        await this.loadDuplicatePoster(exact);
 
-      } else if (communityMatches.length) {
-        this.showSimilar = true;
+        if (request === this.searchRequest) {
+          this.showDuplicate = true;
+        }
+      } else {
+        this.showSimilar = false;
         this.confirmedDifferent = false;
       }
-
     } catch (error: any) {
-      this.error =
-        error?.message || 'No se han podido comprobar las coincidencias.';
-
+      this.error = error?.message || 'No se han podido comprobar las coincidencias.';
     } finally {
       if (request === this.searchRequest) {
         this.checking = false;
@@ -296,25 +284,53 @@ export class AnadirFicha implements OnInit, OnDestroy {
     }
   }
 
-  // SELECCIONAR RESULTADO DE TMDB
-  chooseTmdb(item: CatalogItem): void {
-
+  async chooseTmdb(item: CatalogItem): Promise<void> {
     this.selectedTmdb = item;
 
     this.title = item.title || item.name || this.title;
     this.originalTitle = item.title || item.name || '';
 
     const date = item.release_date || item.first_air_date;
-
     this.year = date ? Number(date.slice(0, 4)) : null;
     this.overview = item.overview || '';
 
-    this.notice = 'Datos de TMDB añadidos. Puedes editarlos.';
+    this.duplicateItem = null;
+    this.showDuplicate = false;
+    this.showSimilar = false;
+    this.confirmedDifferent = false;
+    this.notice = '';
+    this.error = '';
+
+    try {
+      const existing = await this.community.findByTmdbId(item.id, this.category);
+
+      if (existing) {
+        this.duplicateItem = existing;
+        await this.loadDuplicatePoster(existing);
+        this.showDuplicate = true;
+        this.notice = 'Esta película o serie ya está publicada en Bangtan Olé.';
+        return;
+      }
+
+      const exact = await this.community.findExactTitle(this.title, this.year, this.category);
+
+      if (exact) {
+        this.duplicateItem = exact;
+        await this.loadDuplicatePoster(exact);
+        this.showDuplicate = true;
+        this.notice = 'Ya existe una ficha con este título y año.';
+        return;
+      }
+
+      // El resultado de TMDB no se copia automáticamente a Supabase.
+      this.notice = 'Datos de TMDB añadidos. Puedes editarlos.';
+    } catch (error) {
+      console.error('Error comprobando la ficha existente:', error);
+      this.error = 'No hemos podido comprobar si esta ficha ya existe. Inténtalo de nuevo.';
+    }
   }
 
-  // SUBIR PORTADA
   onPosterSelected(event: Event): void {
-
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0] ?? null;
 
@@ -343,7 +359,6 @@ export class AnadirFicha implements OnInit, OnDestroy {
   }
 
   removePoster(): void {
-
     if (this.posterPreview) {
       URL.revokeObjectURL(this.posterPreview);
     }
@@ -353,25 +368,144 @@ export class AnadirFicha implements OnInit, OnDestroy {
   }
 
   confirmDifferent(): void {
-    this.confirmedDifferent = true;
-    this.showSimilar = false;
+  if (!this.confirmedDifferent) return;
+
+  this.showSimilar = false;
+  this.showDuplicate = false;
+  this.duplicateDismissed = true;
+
+  void this.save();
+}
+
+ private async loadDuplicatePoster(item: CommunityCatalogItem): Promise<void> {
+  this.duplicateTmdbPosterPath = null;
+  this.duplicateTmdbId = item.tmdb_id ?? null;
+
+  if (item.content_type !== 'movie' && item.content_type !== 'tv') {
+    return;
   }
 
-  openExisting(): void {
-    if (this.duplicateItem) {
-      void this.router.navigate([
-        '/ficha-comunidad',
-        this.duplicateItem.id,
-      ]);
+  try {
+    let tmdbId = item.tmdb_id;
+    let tmdbResult: CatalogItem | null = null;
+
+    // Si la ficha antigua no tiene ID de TMDB, buscamos por título.
+    if (!tmdbId) {
+      const results = await this.tmdb.search(item.title, item.content_type);
+
+      tmdbResult = results.find((result) => {
+        const resultTitle = result.title || result.name || '';
+        const resultDate = result.release_date || result.first_air_date;
+        const resultYear = resultDate
+          ? Number(resultDate.slice(0, 4))
+          : null;
+
+        return (
+          this.normalize(resultTitle) === this.normalize(item.title) &&
+          (!item.release_year || resultYear === item.release_year)
+        );
+      }) ?? null;
+
+      if (!tmdbResult) return;
+
+      tmdbId = tmdbResult.id;
+      this.duplicateTmdbId = tmdbResult.id;
+    }
+
+    // Recuperamos todos los detalles para obtener también el año.
+    const details = await this.tmdb.getDetails(tmdbId, item.content_type);
+
+    const date =
+      details?.release_date ||
+      details?.first_air_date ||
+      tmdbResult?.release_date ||
+      tmdbResult?.first_air_date;
+
+    // Actualizamos el objeto local para que el modal muestre el año.
+    // Esto NO modifica ni guarda la ficha en Supabase.
+    if (!item.release_year && date) {
+      item.release_year = Number(date.slice(0, 4));
+    }
+
+    // Recuperamos el póster solamente si la ficha no tiene uno propio.
+    if (!item.poster_url) {
+      this.duplicateTmdbPosterPath =
+        details?.poster_path ||
+        tmdbResult?.poster_path ||
+        null;
+    }
+
+    if (this.duplicateItem?.id === item.id) {
+      this.cdr.detectChanges();
+    }
+  } catch (error) {
+    console.warn(
+      'No se ha podido recuperar la información de TMDB:',
+      error
+    );
+  }
+}
+
+  private async loadSimilarPoster(item: CommunityCatalogItem): Promise<void> {
+    const request = ++this.similarPosterRequest;
+    this.similarTmdbPosterPath = null;
+
+    if (item.poster_url) return;
+    if (item.content_type !== 'movie' && item.content_type !== 'tv') return;
+
+    try {
+      if (item.tmdb_id) {
+        const details = await this.tmdb.getDetails(item.tmdb_id, item.content_type);
+        if (request === this.similarPosterRequest) {
+          this.similarTmdbPosterPath = details?.poster_path ?? null;
+        }
+      } else {
+        const results = await this.tmdb.search(item.title, item.content_type);
+        const match = results.find((result) => {
+          const resultTitle = result.title || result.name || '';
+          const date = result.release_date || result.first_air_date;
+          const resultYear = date ? Number(date.slice(0, 4)) : null;
+
+          return (
+            this.normalize(resultTitle) === this.normalize(item.title) &&
+            (!item.release_year || resultYear === item.release_year)
+          );
+        });
+
+        if (request === this.similarPosterRequest) {
+          this.similarTmdbPosterPath = match?.poster_path ?? null;
+        }
+      }
+
+      if (request === this.similarPosterRequest) {
+        this.cdr.detectChanges();
+      }
+    } catch (error) {
+      console.warn('No se ha podido recuperar el póster de la ficha similar:', error);
     }
   }
 
-  // GUARDAR FICHA
-  async save(): Promise<void> {
+  openExisting(): void {
+    if (!this.duplicateItem) return;
 
+    const item = this.duplicateItem;
+
+    if (item.content_type === 'movie' || item.content_type === 'tv') {
+      const tmdbId = item.tmdb_id ?? this.duplicateTmdbId;
+
+      if (tmdbId) {
+        void this.router.navigate(['/contenido', item.content_type, tmdbId]);
+        return;
+      }
+    }
+
+    void this.router.navigate(['/ficha-comunidad', item.id]);
+  }
+
+  async save(): Promise<void> {
     this.error = '';
 
-    if (!this.categories.some(item => item.id === this.category)) {
+    if (!this.categories.some((item) => item.id === this.category)) {
       this.error = 'Selecciona una de tus categorías disponibles.';
       return;
     }
@@ -381,35 +515,47 @@ export class AnadirFicha implements OnInit, OnDestroy {
       return;
     }
 
-    const missing = this.selectedCategory.fields
-      .filter(field => field.required)
-      .some(field =>
-        !String(this.details[field.key] ?? '').trim()
-      );
+    // Una coincidencia exacta nunca puede saltarse cerrando el modal.
+    if (this.duplicateItem && !this.duplicateDismissed) {
+  this.showDuplicate = true;
+  this.showSimilar = false;
+  return;
+}
 
-    if (missing) {
+    // Si existe en TMDB, no se crea una copia comunitaria.
+    if (this.usesTmdb && this.selectedTmdb) {
       this.error =
-        'Completa los campos obligatorios de esta categoría.';
+        'Esta película o serie ya existe en TMDB. Accede a su ficha para valorarla y reseñarla.';
+      return;
+    }
+    if (this.usesTmdb && this.communityMatches.length > 0 && !this.confirmedDifferent) {
+      this.showSimilar = true;
       return;
     }
 
-    if (
-      this.usesTmdb &&
-      this.communityMatches.length &&
-      !this.confirmedDifferent &&
-      !this.communityMatches.some(item =>
-        this.normalize(item.title) === this.normalize(this.title) &&
-        (item.release_year ?? 0) === (this.year ?? 0)
-      )
-    ) {
+    const missing = this.selectedCategory.fields
+      .filter((field) => field.required)
+      .some((field) => !String(this.details[field.key] ?? '').trim());
+
+    if (missing) {
+      this.error = 'Completa los campos obligatorios de esta categoría.';
+      return;
+    }
+
+    // Comprobar si hay títulos parecidos.
+    if (this.usesTmdb && this.communityMatches.length && !this.confirmedDifferent) {
       this.showSimilar = true;
+      return;
+    }
+
+    // La confirmación de similitudes solo se acepta si se ha marcado.
+    if (this.showSimilar && !this.confirmedDifferent) {
       return;
     }
 
     this.saving = true;
 
     try {
-
       const item = await this.community.create({
         category: this.category,
         title: this.title,
@@ -418,47 +564,33 @@ export class AnadirFicha implements OnInit, OnDestroy {
         overview: this.overview,
 
         country:
-          this.country ||
-          (this.category === 'travel'
-            ? String(this.details['country'] ?? '')
-            : ''),
+          this.country || (this.category === 'travel' ? String(this.details['country'] ?? '') : ''),
 
         genres: this.genresText
           .split(',')
-          .map(value => value.trim())
+          .map((value) => value.trim())
           .filter(Boolean),
 
-        tmdb_id: this.selectedTmdb?.id ?? null,
+        tmdb_id: null,
         poster: this.posterFile,
         details: this.details,
       });
 
-      await this.router.navigate([
-        '/ficha-comunidad',
-        item.id,
-      ]);
-
+      await this.router.navigate(['/ficha-comunidad', item.id]);
     } catch (error: any) {
-
-      const message =
-        error?.message || 'No se ha podido publicar la ficha.';
+      const message = error?.message || 'No se ha podido publicar la ficha.';
 
       if (message.startsWith('DUPLICATE:')) {
-        await this.router.navigate([
-          '/ficha-comunidad',
-          message.split(':')[1],
-        ]);
+        await this.router.navigate(['/ficha-comunidad', message.split(':')[1]]);
       } else {
         this.error = message;
       }
-
     } finally {
       this.saving = false;
     }
   }
 
   ngOnDestroy(): void {
-
     if (this.searchTimer) {
       clearTimeout(this.searchTimer);
     }
