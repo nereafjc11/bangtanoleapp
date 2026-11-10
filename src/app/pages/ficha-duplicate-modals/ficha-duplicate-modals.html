@@ -1,0 +1,240 @@
+
+@if (showDuplicate && duplicateItem) {
+  <div class="modal-backdrop" (click)="dismissDuplicate.emit()">
+    <section
+      class="dialog duplicate-dialog"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="duplicate-title"
+      (click)="$event.stopPropagation()">
+
+      <button
+        type="button"
+        class="modal-close"
+        aria-label="Cerrar"
+        (click)="dismissDuplicate.emit()">
+        ×
+      </button>
+
+      <div class="modal-illustration duplicate-illustration" aria-hidden="true">
+        <svg class="modal-hero-svg" viewBox="0 0 96 82" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M15 24h66v48H15z" stroke="currentColor" stroke-width="4" stroke-linejoin="round"/>
+          <path d="M10 10h76v14H10z" stroke="currentColor" stroke-width="4" stroke-linejoin="round"/>
+          <path d="m18 10 9 14M39 10l9 14M60 10l9 14" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>
+          <path d="M29 39h38M29 52h25" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>
+        </svg>
+        <span class="illustration-alert">!</span>
+      </div>
+
+      <h2 id="duplicate-title">Este contenido ya existe</h2>
+
+      <p class="modal-intro">
+        Ya hay una ficha de
+        <strong>
+          {{ duplicateItem.title }}{{ duplicateItem.release_year ? ' (' + duplicateItem.release_year + ')' : '' }}
+        </strong>
+        en Bangtan Olé. No necesitas crearla otra vez.
+      </p>
+
+      <article class="duplicate-preview-card">
+        <div class="modal-poster">
+          @if (duplicateItem.poster_url) {
+            <img
+              [src]="duplicateItem.poster_url"
+              [alt]="'Póster de ' + duplicateItem.title">
+          } @else if (duplicateTmdbPosterPath) {
+            <img
+              [src]="tmdb.getPoster(duplicateTmdbPosterPath, 'w500')"
+              [alt]="'Póster de ' + duplicateItem.title">
+          } @else {
+            <span class="bo-film" aria-hidden="true"></span>
+          }
+        </div>
+
+        <div class="modal-card-copy">
+          <h3>{{ duplicateItem.title }}</h3>
+          <p>
+            {{ selectedCategoryLabel }}{{ duplicateItem.release_year ? ' · ' + duplicateItem.release_year : '' }}
+          </p>
+
+          @if (duplicateItem.genres?.length) {
+            <div class="modal-tags">
+              @for (genre of duplicateItem.genres.slice(0, 3); track genre) {
+                <span>{{ genre }}</span>
+              }
+            </div>
+          }
+        </div>
+      </article>
+
+      <div class="dialog-actions modal-actions">
+        <button
+          type="button"
+          class="secondary-button"
+          (click)="dismissDuplicate.emit()">
+          Volver y editar
+        </button>
+
+        <button
+          type="button"
+          class="primary-button"
+          (click)="openExisting.emit()">
+          <span class="bo-external-link" aria-hidden="true"></span>
+          Ver ficha existente
+        </button>
+      </div>
+    </section>
+  </div>
+}
+
+@if (showSimilar) {
+  <div class="modal-backdrop" (click)="closeSimilar.emit()">
+    <section
+      class="dialog similar-dialog"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="similar-title"
+      (click)="$event.stopPropagation()">
+
+      <button
+        type="button"
+        class="modal-close"
+        aria-label="Cerrar"
+        (click)="closeSimilar.emit()">
+        ×
+      </button>
+
+      <div class="modal-illustration confirm-illustration" aria-hidden="true">
+        <svg class="modal-hero-svg checklist-svg" viewBox="0 0 88 88" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="17" y="12" width="54" height="68" rx="8" stroke="currentColor" stroke-width="4"/>
+          <path d="M32 9h24a5 5 0 0 1 5 5v7H27v-7a5 5 0 0 1 5-5Z" fill="#F7EEFF" stroke="currentColor" stroke-width="4"/>
+          <path d="m28 39 5 5 9-10M48 40h13M28 59l5 5 9-10M48 60h13" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+
+      <h2 id="similar-title">¿Seguro que quieres crear esta ficha?</h2>
+
+      <p class="modal-intro">
+        Has indicado que no es el mismo contenido que las fichas similares encontradas.
+        Antes de continuar, confirma los siguientes datos:
+      </p>
+
+      <div class="comparison-grid">
+        <article class="comparison-card existing-comparison">
+          <span class="comparison-label">Ficha existente</span>
+
+          @if (communityMatches.length) {
+            <div class="comparison-content">
+              <div class="modal-poster comparison-poster">
+                @if (communityMatches[0].poster_url) {
+                  <img
+                    [src]="communityMatches[0].poster_url"
+                    [alt]="'Póster de ' + communityMatches[0].title">
+                } @else if (similarTmdbPosterPath) {
+                  <img
+                    [src]="tmdb.getPoster(similarTmdbPosterPath, 'w500')"
+                    [alt]="'Póster de ' + communityMatches[0].title">
+                } @else {
+                  <span class="bo-film" aria-hidden="true"></span>
+                }
+              </div>
+
+              <div class="modal-card-copy">
+                <h3>{{ communityMatches[0].title }}</h3>
+                <p>
+                  {{ communityMatches[0].content_type === 'tv' ? 'Serie' : 'Película' }}
+                  · {{ communityMatches[0].release_year || 'Sin año' }}
+                </p>
+
+                @if (communityMatches[0].genres?.length) {
+                  <div class="modal-tags">
+                    @for (genre of communityMatches[0].genres.slice(0, 2); track genre) {
+                      <span>{{ genre }}</span>
+                    }
+                  </div>
+                }
+              </div>
+            </div>
+          }
+        </article>
+
+        <div class="comparison-symbol" aria-hidden="true">≠</div>
+
+        <article class="comparison-card new-comparison">
+          <span class="comparison-label">Tu nueva ficha</span>
+
+          <div class="comparison-content">
+            <div class="modal-poster comparison-poster">
+              @if (posterPreview) {
+                <img
+                  [src]="posterPreview"
+                  [alt]="'Póster de ' + previewTitle">
+              } @else if (selectedTmdb?.poster_path && usesTmdb) {
+                <img
+                  [src]="tmdb.getPoster(selectedTmdb!.poster_path, 'w500')"
+                  [alt]="'Póster de ' + previewTitle">
+              } @else {
+                <span class="bo-film" aria-hidden="true"></span>
+              }
+            </div>
+
+            <div class="modal-card-copy">
+              <h3>{{ previewTitle }}</h3>
+              <p>{{ selectedCategoryLabel }} · {{ year || 'Sin año' }}</p>
+
+              @if (genresText) {
+                <div class="modal-tags">
+                  @for (genre of genresText.split(',').slice(0, 2); track genre) {
+                    <span>{{ genre.trim() }}</span>
+                  }
+                </div>
+              }
+            </div>
+          </div>
+        </article>
+      </div>
+
+      <div class="modal-reminder">
+        <div class="reminder-heading">
+          <span class="bo-info" aria-hidden="true"></span>
+          <strong>Recuerda</strong>
+        </div>
+
+        <ul>
+          <li>Comprueba que el título, el tipo de contenido y el año son correctos.</li>
+          <li>Asegúrate de que no se trata de otra edición, temporada o variante del mismo contenido.</li>
+          <li>Si el contenido ya existe, utiliza la ficha disponible para añadir tus reseñas y valoraciones.</li>
+        </ul>
+      </div>
+
+      <label class="confirm-check modal-confirm-check">
+        <input
+          type="checkbox"
+          [ngModel]="confirmedDifferent"
+          (ngModelChange)="confirmedDifferentChange.emit($event)"
+          name="confirmedDifferent">
+        <span>
+          Confirmo que he revisado las similitudes y que este contenido es diferente.
+        </span>
+      </label>
+
+      <div class="dialog-actions modal-actions">
+        <button
+          type="button"
+          class="secondary-button"
+          (click)="closeSimilar.emit()">
+          Volver y revisar
+        </button>
+
+        <button
+          type="button"
+          class="primary-button"
+          [disabled]="!confirmedDifferent"
+          (click)="confirmDifferent.emit()">
+          <span class="bo-plus" aria-hidden="true"></span>
+          Continuar y crear ficha
+        </button>
+      </div>
+    </section>
+  </div>
+}

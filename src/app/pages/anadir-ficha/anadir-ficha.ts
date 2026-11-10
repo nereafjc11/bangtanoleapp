@@ -2,6 +2,7 @@ import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
+import { FichaDuplicateModals } from '../ficha-duplicate-modals/ficha-duplicate-modals';
 
 import { CategoriesService } from '../../services/categories.service';
 import { UserPreferencesService } from '../../services/user-preferences.service';
@@ -21,7 +22,7 @@ import {
 @Component({
   selector: 'app-anadir-ficha',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [CommonModule, FormsModule, RouterLink, FichaDuplicateModals],
   templateUrl: './anadir-ficha.html',
   styleUrl: './anadir-ficha.css',
 })
