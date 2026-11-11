@@ -46,6 +46,14 @@ export const routes: Routes = [
         loadComponent: () => import('./pages/profile/profile').then((m) => m.Profile),
       },
       {
+        path: 'listas',
+        loadComponent: () => import('./pages/listas/listas').then((m) => m.Listas),
+      },
+      {
+        path: 'favoritos',
+        loadComponent: () => import('./pages/favoritos/favoritos').then((m) => m.Favoritos),
+      },
+      {
         path: '',
         redirectTo: 'home',
         pathMatch: 'full',

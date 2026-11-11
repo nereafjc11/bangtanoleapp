@@ -57,7 +57,7 @@
             {{ selectedCategoryLabel }}{{ duplicateItem.release_year ? ' · ' + duplicateItem.release_year : '' }}
           </p>
 
-          @if (duplicateItem.genres?.length) {
+          @if (duplicateItem.genres.length) {
             <div class="modal-tags">
               @for (genre of duplicateItem.genres.slice(0, 3); track genre) {
                 <span>{{ genre }}</span>
@@ -146,7 +146,7 @@
                   · {{ communityMatches[0].release_year || 'Sin año' }}
                 </p>
 
-                @if (communityMatches[0].genres?.length) {
+                @if (communityMatches[0].genres.length) {
                   <div class="modal-tags">
                     @for (genre of communityMatches[0].genres.slice(0, 2); track genre) {
                       <span>{{ genre }}</span>

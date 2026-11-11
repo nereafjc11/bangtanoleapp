@@ -8,6 +8,12 @@ export interface UserProfile {
   display_name: string | null;
   avatar_url: string | null;
   bio: string | null;
+  cover_url: string | null;
+  country: string | null;
+  location: string | null;
+  interests: string[];
+  website_url: string | null;
+  is_private: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -33,7 +39,7 @@ export class ProfileService {
 
     const { data, error } = await this.supabaseService.client
       .from('profiles')
-      .select('id, username, display_name, avatar_url, bio, created_at, updated_at')
+      .select('id, username, display_name, avatar_url, bio, cover_url, country, location, interests, website_url, is_private, created_at, updated_at')
       .eq('id', user.id)
       .single();
 
@@ -48,7 +54,7 @@ export class ProfileService {
   async getPublicProfile(userId: string): Promise<UserProfile> {
     const { data, error } = await this.supabaseService.client
       .from('profiles')
-      .select('id, username, display_name, avatar_url, bio, created_at, updated_at')
+      .select('id, username, display_name, avatar_url, bio, cover_url, country, location, interests, website_url, is_private, created_at, updated_at')
       .eq('id', userId)
       .single();
 
@@ -69,7 +75,7 @@ export class ProfileService {
 
     const { data, error } = await this.supabaseService.client
       .from('profiles')
-      .select('id, username, display_name, avatar_url, bio, created_at, updated_at')
+      .select('id, username, display_name, avatar_url, bio, cover_url, country, location, interests, website_url, is_private, created_at, updated_at')
       .in('id', uniqueIds);
 
     if (error) {
@@ -81,7 +87,7 @@ export class ProfileService {
   }
 
   async updateMyProfile(
-    profile: Pick<UserProfile, 'username' | 'display_name' | 'bio'>
+    profile: Pick<UserProfile, 'username' | 'display_name' | 'bio'> & Partial<Pick<UserProfile, 'cover_url' | 'country' | 'location' | 'interests' | 'website_url' | 'is_private'>>
   ): Promise<void> {
     const {
       data: { user },
@@ -97,12 +103,37 @@ export class ProfileService {
       .update({
         username: profile.username,
         display_name: profile.display_name,
-        bio: profile.bio
+        bio: profile.bio,
+        ...(profile.cover_url !== undefined ? { cover_url: profile.cover_url } : {}),
+        ...(profile.country !== undefined ? { country: profile.country } : {}),
+        ...(profile.location !== undefined ? { location: profile.location } : {}),
+        ...(profile.interests !== undefined ? { interests: profile.interests } : {}),
+        ...(profile.website_url !== undefined ? { website_url: profile.website_url } : {}),
+        ...(profile.is_private !== undefined ? { is_private: profile.is_private } : {})
       })
       .eq('id', user.id);
 
     if (error) {
       console.error('Error al actualizar el perfil:', error);
+      throw error;
+    }
+  }
+
+  async updateCoverUrl(coverUrl: string): Promise<void> {
+    const { data: { user }, error: userError } =
+      await this.supabaseService.client.auth.getUser();
+
+    if (userError || !user) {
+      throw new Error('No hay ninguna usuaria autenticada.');
+    }
+
+    const { error } = await this.supabaseService.client
+      .from('profiles')
+      .update({ cover_url: coverUrl })
+      .eq('id', user.id);
+
+    if (error) {
+      console.error('Error al guardar la portada:', error);
       throw error;
     }
   }
@@ -126,6 +157,34 @@ export class ProfileService {
       console.error('Error al guardar la fotografía:', error);
       throw error;
     }
+  }
+
+  async getListsCount(userId: string): Promise<number> {
+    const { count, error } = await this.supabaseService.client
+      .from('user_lists')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', userId)
+      .eq('is_public', true);
+    if (error) throw error;
+    return count ?? 0;
+  }
+
+  async getFavoritesCount(userId: string): Promise<number> {
+    const { count, error } = await this.supabaseService.client
+      .from('content_favorites')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', userId);
+    if (error) throw error;
+    return count ?? 0;
+  }
+
+  async getReviewsCount(userId: string): Promise<number> {
+    const { count, error } = await this.supabaseService.client
+      .from('content_reviews')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', userId);
+    if (error) throw error;
+    return count ?? 0;
   }
 
   // =====================================
@@ -238,6 +297,19 @@ export class ProfileService {
     return count ?? 0;
   }
 
+  /**
+   * Devuelve las personas a las que este perfil sigue y que también le siguen.
+   */
+  async getMutualFriends(userId: string): Promise<UserProfile[]> {
+    const [followers, following] = await Promise.all([
+      this.getFollowers(userId),
+      this.getFollowing(userId)
+    ]);
+
+    const followerIds = new Set(followers.map(person => person.id));
+    return following.filter(person => followerIds.has(person.id));
+  }
+
   // =====================================
   // LISTAS DE SEGUIDORES Y SEGUIDOS
   // =====================================
@@ -263,7 +335,7 @@ export class ProfileService {
     const { data: profiles, error: profilesError } =
       await this.supabaseService.client
         .from('profiles')
-        .select('id, username, display_name, avatar_url, bio, created_at, updated_at')
+        .select('id, username, display_name, avatar_url, bio, cover_url, country, location, interests, website_url, is_private, created_at, updated_at')
         .in('id', ids);
 
     if (profilesError) {
@@ -301,7 +373,7 @@ export class ProfileService {
     const { data: profiles, error: profilesError } =
       await this.supabaseService.client
         .from('profiles')
-        .select('id, username, display_name, avatar_url, bio, created_at, updated_at')
+        .select('id, username, display_name, avatar_url, bio, cover_url, country, location, interests, website_url, is_private, created_at, updated_at')
         .in('id', ids);
 
     if (profilesError) {

@@ -1,0 +1,100 @@
+<section class="favorites-page">
+  <header class="page-heading">
+    <div>
+      <span class="eyebrow">TU ESPACIO</span>
+      <h1><span class="bo-heart" aria-hidden="true"></span> Mis favoritos</h1>
+      <p>Todo lo que has guardado en Bangtan Olé, reunido en un mismo lugar.</p>
+    </div>
+    <span class="total-count">{{ items.length }} {{ items.length === 1 ? 'contenido' : 'contenidos' }}</span>
+  </header>
+
+  @if (loading) {
+  <div class="state-card"><span class="loader"></span>
+    <p>Cargando tus favoritos...</p>
+  </div>
+  } @else if (error) {
+  <div class="state-card error-state">
+    <p>{{ error }}</p>
+    <button type="button" class="primary-button" (click)="loadFavorites()">Volver a intentar</button>
+  </div>
+  } @else if (items.length === 0) {
+  <div class="empty-state">
+    <span class="empty-icon bo-heart" aria-hidden="true"></span>
+    <h2>Tu colección empieza aquí</h2>
+    <p>Cuando marques una película, serie u otro contenido como favorito, aparecerá en este apartado.</p>
+    <a routerLink="/explorar" class="primary-button">Explorar contenidos</a>
+  </div>
+  } @else {
+  <div class="favorites-grid">
+    @for (item of items; track item.id) {
+    <article class="favorite-card">
+      <button type="button" class="poster-button" (click)="openItem(item)" [attr.aria-label]="'Abrir ' + item.title">
+        @if (item.poster) {
+        <img [src]="item.poster" [alt]="'Póster de ' + item.title">
+        } @else {
+        <span class="poster-placeholder bo-film" aria-hidden="true"></span>
+        }
+      </button>
+      <div class="card-copy">
+        <button type="button" class="title-button" (click)="openItem(item)">{{ item.title }}</button>
+        <span class="meta">{{ item.type === 'tv' ? 'Serie' : item.type === 'movie' ? 'Película' : item.type }}@if
+          (item.year) { · {{ item.year }} }</span>
+        @if (item.overview) { <p>{{ item.overview }}</p> }
+        <button type="button" class="remove-button" [disabled]="removingId === item.id"
+          (click)="removeFavorite(item, $event)">
+          {{ removingId === item.id ? 'Quitando...' : 'Quitar de favoritos' }}
+        </button>
+      </div>
+    </article>
+    }
+  </div>
+  }
+
+  @if (showRemoveConfirm && pendingFavorite) {
+    <div class="modal-backdrop" (click)="closeRemoveConfirm()">
+      <section
+        class="dialog delete-dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="remove-favorite-title"
+        (click)="$event.stopPropagation()">
+
+        <button
+          type="button"
+          class="modal-close"
+          aria-label="Cerrar"
+          [disabled]="!!removingId"
+          (click)="closeRemoveConfirm()">×</button>
+
+        <div class="delete-illustration" aria-hidden="true">
+          <span class="bo-trash"></span>
+        </div>
+
+        <h2 id="remove-favorite-title">¿Quitar de favoritos?</h2>
+        <p class="delete-intro">
+          ¿Seguro que quieres quitar
+          <strong>{{ pendingFavorite.title }}</strong>
+          de tus favoritos? Podrás volver a añadirlo cuando quieras.
+        </p>
+
+        <div class="dialog-actions">
+          <button
+            type="button"
+            class="secondary-button"
+            [disabled]="!!removingId"
+            (click)="closeRemoveConfirm()">
+            Cancelar
+          </button>
+          <button
+            type="button"
+            class="danger-button"
+            [disabled]="!!removingId"
+            (click)="confirmRemoveFavorite()">
+            {{ removingId ? 'Quitando...' : 'Sí, quitar favorito' }}
+          </button>
+        </div>
+      </section>
+    </div>
+  }
+
+</section>

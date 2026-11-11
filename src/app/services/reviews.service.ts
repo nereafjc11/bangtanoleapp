@@ -1,4 +1,3 @@
-
 import { Injectable } from '@angular/core';
 import { SupabaseService } from './supabase.service';
 
@@ -48,11 +47,11 @@ export class ReviewsService {
           content_id: String(input.id),
           rating: input.rating,
           review_text: input.reviewText?.trim() || null,
-          updated_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
         },
         {
           onConflict:
-            'user_id,content_source,content_type,content_id',
+            'user_id,content_source,content_type,content_id'
         }
       )
       .select('*')
@@ -96,6 +95,20 @@ export class ReviewsService {
     if (error) throw error;
 
     return data as ContentReview | null;
+  }
+
+  async getMyReviews(): Promise<ContentReview[]> {
+    const user = await this.getUser();
+
+    const { data, error } = await this.supabase.client
+      .from(this.table)
+      .select('*')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+
+    return (data ?? []) as ContentReview[];
   }
 
   async deleteReview(id: string): Promise<void> {

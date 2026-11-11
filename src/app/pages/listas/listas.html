@@ -1,0 +1,135 @@
+<section class="lists-page">
+  <header class="page-heading">
+    <div>
+      <span class="eyebrow">TU ESPACIO</span>
+      <h1><span class="bo-bookmark" aria-hidden="true"></span> Mis listas</h1>
+      <p>Organiza tus películas, series y otros contenidos en colecciones propias.</p>
+    </div>
+    @if (!selectedList) {
+      <button type="button" class="primary-button" (click)="showCreateForm = !showCreateForm">
+        <span class="bo-plus" aria-hidden="true"></span> Crear lista
+      </button>
+    }
+  </header>
+
+  @if (error) { <div class="error-message" role="alert">{{ error }}</div> }
+
+  @if (showCreateForm && !selectedList) {
+    <form class="create-panel" (ngSubmit)="createList()">
+      <h2>Nueva lista</h2>
+      <label>Nombre de la lista
+        <input name="name" [(ngModel)]="newName" required maxlength="70" placeholder="Ej. K-dramas pendientes">
+      </label>
+      <label>Descripción
+        <textarea name="description" [(ngModel)]="newDescription" rows="2" maxlength="240" placeholder="¿Qué vas a guardar aquí?"></textarea>
+      </label>
+      <label class="visibility-check">
+        <input type="checkbox" name="public" [(ngModel)]="newIsPublic"> Hacer esta lista pública
+      </label>
+      <div class="form-actions">
+        <button type="button" class="secondary-button" (click)="showCreateForm = false">Cancelar</button>
+        <button type="submit" class="primary-button" [disabled]="saving || !newName.trim()">
+          {{ saving ? 'Creando...' : 'Crear lista' }}
+        </button>
+      </div>
+    </form>
+  }
+
+  @if (loading) {
+    <div class="state-card">Cargando tus listas...</div>
+  } @else if (!selectedList && lists.length === 0) {
+    <div class="empty-state">
+      <span class="bo-bookmark empty-icon" aria-hidden="true"></span>
+      <h2>Aún no tienes listas</h2>
+      <p>Crea tu primera colección para organizar los contenidos que quieres ver, leer o descubrir.</p>
+      <button type="button" class="primary-button" (click)="showCreateForm = true">Crear mi primera lista</button>
+    </div>
+  } @else if (!selectedList) {
+    <div class="lists-grid">
+      @for (list of lists; track list.id) {
+        <article class="list-card">
+          <button type="button" class="list-open" (click)="openList(list)">
+            <span class="list-icon bo-bookmark" aria-hidden="true"></span>
+            <span class="list-copy">
+              <strong>{{ list.name }}</strong>
+              <small>{{ list.description || 'Sin descripción' }}</small>
+              <em>{{ list.is_public ? 'Pública' : 'Privada' }}</em>
+            </span>
+            <span class="bo-chevron-right arrow" aria-hidden="true"></span>
+          </button>
+          <button type="button" class="delete-button" [disabled]="deletingListId === list.id" (click)="deleteList(list)">
+            Eliminar lista
+          </button>
+        </article>
+      }
+    </div>
+  } @else {
+    <div class="detail-heading">
+      <button type="button" class="back-button" (click)="backToLists()">← Todas mis listas</button>
+      <h2>{{ selectedList.name }}</h2>
+      @if (selectedList.description) { <p>{{ selectedList.description }}</p> }
+      <span class="visibility-label">{{ selectedList.is_public ? 'Lista pública' : 'Lista privada' }}</span>
+    </div>
+
+    @if (itemsLoading) {
+      <div class="state-card">Cargando contenidos...</div>
+    } @else if (selectedItems.length === 0) {
+      <div class="empty-state compact-empty">
+        <span class="bo-film empty-icon" aria-hidden="true"></span>
+        <h2>Esta lista está vacía</h2>
+        <p>Añade contenidos desde sus fichas para verlos aquí.</p>
+      </div>
+    } @else {
+      <div class="content-grid">
+        @for (item of selectedItems; track item.id) {
+          <article class="content-card">
+            <button type="button" class="content-open" (click)="openItem(item)">
+              @if (item.poster) { <img [src]="item.poster" [alt]="'Póster de ' + item.title"> }
+              @else { <span class="poster-fallback bo-film" aria-hidden="true"></span> }
+              <span class="content-title">{{ item.title }}</span>
+              <small>{{ item.type === 'tv' ? 'Serie' : item.type === 'movie' ? 'Película' : item.type }}@if (item.year) { · {{ item.year }} }</small>
+            </button>
+            <button type="button" class="remove-item" [disabled]="removingItemId === item.id" (click)="removeItem(item)">
+              {{ removingItemId === item.id ? 'Quitando...' : 'Quitar de la lista' }}
+            </button>
+          </article>
+        }
+      </div>
+    }
+  }
+
+  @if (showDeleteConfirm && pendingDeleteList) {
+    <div class="modal-backdrop" (click)="closeDeleteConfirm()">
+      <section
+        class="dialog delete-dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="delete-list-title"
+        (click)="$event.stopPropagation()">
+
+        <button type="button" class="modal-close" aria-label="Cerrar" [disabled]="!!deletingListId" (click)="closeDeleteConfirm()">×</button>
+
+        <div class="delete-illustration" aria-hidden="true">
+          <span class="bo-trash"></span>
+        </div>
+
+        <h2 id="delete-list-title">¿Eliminar esta lista?</h2>
+        <p class="delete-intro">
+          ¿Seguro que quieres eliminar la lista
+          <strong>{{ pendingDeleteList.name }}</strong>?
+          Esta acción no se puede deshacer.
+        </p>
+
+        <div class="dialog-actions">
+          <button type="button" class="secondary-button" [disabled]="!!deletingListId" (click)="closeDeleteConfirm()">
+            Cancelar
+          </button>
+          <button type="button" class="danger-button" [disabled]="!!deletingListId" (click)="confirmDeleteList()">
+            {{ deletingListId ? 'Eliminando...' : 'Sí, eliminar lista' }}
+          </button>
+        </div>
+      </section>
+    </div>
+  }
+</section>
+

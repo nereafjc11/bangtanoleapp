@@ -232,8 +232,28 @@
             <p class="notice">{{ notice }}</p>
           }
 
+          @if (selectedTmdb && usesTmdb) {
+            <button
+              type="button"
+              class="primary-button"
+              (click)="openSelectedTmdb()">
+              <span class="bo-external-link" aria-hidden="true"></span>
+              Abrir ficha de TMDB
+            </button>
+          }
+
           @if (error) {
             <p class="error" role="alert">{{ error }}</p>
+          }
+
+          @if (verificationFailed && usesTmdb) {
+            <button
+              type="button"
+              class="secondary-button"
+              [disabled]="checking"
+              (click)="selectedTmdb ? chooseTmdb(selectedTmdb) : checkMatches()">
+              {{ checking ? 'Comprobando...' : 'Reintentar comprobación' }}
+            </button>
           }
 
           <div class="form-actions">
@@ -241,8 +261,8 @@
             <button
               class="primary-button"
               type="submit"
-              [disabled]="saving || checking">
-              {{ saving ? 'Publicando...' : 'Crear ficha' }}
+              [disabled]="saving || checking || verificationFailed || (usesTmdb && !!selectedTmdb)">
+              {{ saving ? 'Publicando...' : (usesTmdb && selectedTmdb ? 'Usa la ficha de TMDB' : 'Crear ficha') }}
             </button>
           </div>
 

@@ -1,83 +1,178 @@
-
 <div class="profile-page">
-  <main class="profile-card">
 
-    <header class="profile-header">
-      <button type="button" class="back-button" (click)="goHome()">
-        <span class="bo-chevron-left" aria-hidden="true"></span> {{ isOwnProfile ? 'Volver a Home' : 'Volver a Explorar' }}
-      </button>
+  @if (loading) {
+    <div class="profile-loading">
+      <div class="loading-orbit"></div>
+      <p>Preparando tu rincón ARMY...</p>
+    </div>
+  } @else if (errorMessage && !profile) {
+    <div class="profile-error">
+      {{ errorMessage }}
+    </div>
+  } @else if (profile) {
 
-      <div class="avatar-container">
-        <div class="avatar-image">
-          @if (previewUrl || avatarUrl) {
-            <img
-              [src]="previewUrl || avatarUrl"
-              [alt]="'Fotografía de ' + (displayName || username || 'perfil')"
-            />
-          } @else {
-            <span>
-              {{ (displayName || username || 'A').charAt(0).toUpperCase() }}
-            </span>
-          }
+
+    @if (isOwnProfile && showEditProfile && profile) {
+      <main class="profile-layout edit-page-layout">
+        <div class="edit-page-top">
+          <button type="button" class="back-edit-button" (click)="cancelEditProfile()">← Volver al perfil</button>
+          <div>
+            <span class="panel-eyebrow">PERSONALIZA TU ESPACIO ARMY</span>
+            <h1>Editar perfil</h1>
+            <p>Haz que tu rincón de Bangtan Olé hable de ti 💜</p>
+          </div>
         </div>
 
-        <span class="avatar-label">
-          {{ isOwnProfile ? 'Mi perfil ARMY' : 'Perfil ARMY' }}
-        </span>
+        @if (errorMessage) { <div class="error-message">{{ errorMessage }}</div> }
 
-        @if (isOwnProfile) {
-          <label for="avatarInput" class="avatar-upload-button">
-            Elegir fotografía
-          </label>
+        <form class="edit-profile-page" (ngSubmit)="saveProfile()">
+          <section class="edit-cover-preview">
+            <div class="edit-cover-image" [style.background-image]="coverPreviewUrl ? 'url(' + coverPreviewUrl + ')' : (coverUrl ? 'url(' + coverUrl + ')' : null)">
+              <label for="coverInput" class="change-cover-button">
+                <span aria-hidden="true">📷</span> Cambiar portada
+              </label>
+              <input id="coverInput" type="file" accept="image/jpeg,image/png,image/webp" (change)="onCoverSelected($event)" hidden />
+            </div>
+            <div class="edit-avatar-row">
+              <div class="edit-avatar-preview">
+                @if (previewUrl || avatarUrl) {
+                  <img [src]="previewUrl || avatarUrl" [alt]="'Avatar de ' + (displayName || username)" />
+                } @else { <span>{{ (displayName || username || 'A').charAt(0).toUpperCase() }}</span> }
+                <label for="avatarEditInput" class="change-avatar-button" title="Cambiar foto de perfil">📷</label>
+                <input id="avatarEditInput" type="file" accept="image/jpeg,image/png,image/webp" (change)="onAvatarSelected($event)" hidden />
+              </div>
+              <div class="edit-image-hints">JPG, PNG o WEBP · Avatar hasta 2 MB · Portada hasta 5 MB</div>
+            </div>
+          </section>
 
-          <input
-            id="avatarInput"
-            type="file"
-            accept="image/jpeg,image/png,image/webp"
-            (change)="onAvatarSelected($event)"
-            hidden
-          />
+          <div class="edit-fields-grid">
+            <div class="edit-field">
+              <label for="editDisplayName">Nombre visible</label>
+              <input id="editDisplayName" name="displayName" [(ngModel)]="displayName" maxlength="50" placeholder="¿Cómo quieres que te llamemos?" />
+            </div>
+            <div class="edit-field">
+              <label for="editUsername">Nombre de usuario</label>
+              <input id="editUsername" name="username" [(ngModel)]="username" maxlength="30" placeholder="Tu nombre de usuario" />
+            </div>
+            <div class="edit-field">
+              <label for="editCountry">País</label>
+              <input id="editCountry" name="country" [(ngModel)]="country" maxlength="80" placeholder="Tu país" />
+            </div>
+            <div class="edit-field">
+              <label for="editLocation">Ciudad</label>
+              <input id="editLocation" name="location" [(ngModel)]="location" maxlength="100" placeholder="Tu ciudad (opcional)" />
+            </div>
+            <div class="edit-field edit-field-full">
+              <label for="editBio">Biografía</label>
+              <textarea id="editBio" name="bio" [(ngModel)]="bio" rows="4" maxlength="300" placeholder="Cuéntale algo a la comunidad..."></textarea>
+              <small>{{ bio.length }} / 300 caracteres</small>
+            </div>
+            <div class="edit-field edit-field-full">
+              <label for="editInterests">Mis gustos e intereses</label>
+              <input id="editInterests" name="interestsText" [(ngModel)]="interestsText" placeholder="Series, libros, skincare, música..." />
+              <small>Separa tus intereses con comas.</small>
+            </div>
+            <div class="edit-field edit-field-full">
+              <label for="editWebsite">Enlace personal (opcional)</label>
+              <input id="editWebsite" name="websiteUrl" type="url" [(ngModel)]="websiteUrl" placeholder="https://..." />
+            </div>
+          </div>
 
-          @if (selectedFile) {
+          <div class="edit-page-actions">
+            <button type="button" class="cancel-edit-button" (click)="cancelEditProfile()" [disabled]="saving">Cancelar</button>
+            <button type="submit" class="save-edit-button" [disabled]="saving">
+              {{ saving ? 'Guardando cambios...' : 'Guardar cambios' }}
+            </button>
+          </div>
+        </form>
+      </main>
+    } @else {
+    <main class="profile-layout">
+
+      <!-- CABECERA DEL PERFIL -->
+      <section class="profile-cover-card">
+
+        <div class="profile-cover" [style.background-image]="profile.cover_url ? 'url(\'' + profile.cover_url + '\')' : null">
+          <div class="cover-decoration cover-decoration-one"></div>
+          <div class="cover-decoration cover-decoration-two"></div>
+          <span class="cover-heart">♡</span>
+        </div>
+
+        <div class="profile-identity">
+
+          <div class="avatar-container">
+            <div class="avatar-image">
+              @if (previewUrl || avatarUrl) {
+                <img
+                  [src]="previewUrl || avatarUrl"
+                  [alt]="'Fotografía de ' + (displayName || username || 'perfil')"
+                />
+              } @else {
+                <span>
+                  {{ (displayName || username || 'A').charAt(0).toUpperCase() }}
+                </span>
+              }
+            </div>
+
+          </div>
+
+          <div class="profile-main-info">
+            <span class="profile-eyebrow">
+              {{ isOwnProfile ? 'TU ESPACIO ARMY' : 'COMUNIDAD BANGTAN OLÉ' }}
+            </span>
+
+            <h1>{{ displayName || username || 'ARMY' }}</h1>
+
+            <p class="profile-username">
+              {{ username ? '@' + username : '@army' }}
+            </p>
+
+            <p class="profile-bio">
+              {{ bio || 'Un pequeño rincón para compartir todo lo que te gusta 💜' }}
+            </p>
+
+            @if (isOwnProfile && selectedFile) {
+              <button
+                type="button"
+                class="upload-button"
+                [disabled]="uploadingAvatar"
+                (click)="uploadAvatar()"
+              >
+                {{ uploadingAvatar ? 'Subiendo fotografía...' : 'Guardar fotografía' }}
+              </button>
+            }
+          </div>
+
+          @if (isOwnProfile) {
             <button
               type="button"
-              class="upload-button"
-              [disabled]="uploadingAvatar"
-              (click)="uploadAvatar()"
+              class="edit-profile-button"
+              (click)="startEditProfile()"
             >
-              {{ uploadingAvatar ? 'Subiendo fotografía...' : 'Guardar fotografía' }}
+              <span class="bo-edit" aria-hidden="true"></span>
+              Editar perfil
+            </button>
+          } @else {
+            <button
+              type="button"
+              class="follow-button"
+              [class.following]="isFollowingUser"
+              [disabled]="followLoading"
+              (click)="toggleFollow()"
+            >
+              @if (followLoading) {
+                Actualizando...
+              } @else if (isFollowingUser) {
+                Siguiendo
+              } @else {
+                Seguir
+              }
             </button>
           }
-        }
-      </div>
 
-      <h1>
-        {{ isOwnProfile
-          ? '¡Hola, ' + (displayName || username || 'ARMY') + '!'
-          : (displayName || username || 'Perfil ARMY')
-        }}
-      </h1>
+        </div>
 
-      <p>
-        {{ isOwnProfile
-          ? 'Este es tu pequeño rincón personal en Bangtan Olé.'
-          : (username ? '@' + username : 'Comunidad Bangtan Olé')
-        }}
-      </p>
-    </header>
-
-    @if (loading) {
-      <div class="message">Cargando perfil...</div>
-
-    } @else if (errorMessage && !profile) {
-      <div class="error-message">{{ errorMessage }}</div>
-
-    } @else if (profile) {
-
-      <!-- ESTADÍSTICAS SOCIALES -->
-
-      <section class="profile-social">
-
+        <!-- ESTADÍSTICAS -->
         <div class="profile-stats">
 
           <button
@@ -90,6 +185,8 @@
             <span>Seguidores</span>
           </button>
 
+          <div class="stats-divider"></div>
+
           <button
             type="button"
             class="profile-stat"
@@ -100,33 +197,236 @@
             <span>Seguidos</span>
           </button>
 
-        </div>
+          <div class="stats-divider"></div>
+          <div class="profile-stat profile-stat-static">
+            <strong>{{ reviewsCount }}</strong>
+            <span>Reseñas</span>
+          </div>
+          <div class="stats-divider"></div>
+          <div class="profile-stat profile-stat-static">
+            <strong>{{ listsCount }}</strong>
+            <span>Listas</span>
+          </div>
+          <div class="stats-divider"></div>
+          <div class="profile-stat profile-stat-static">
+            <strong>{{ favoritesCount }}</strong>
+            <span>Favoritos</span>
+          </div>
 
-        @if (!isOwnProfile) {
-          <button
-            type="button"
-            class="follow-button"
-            [class.following]="isFollowingUser"
-            [disabled]="followLoading"
-            (click)="toggleFollow()"
-          >
-            @if (followLoading) {
-              Actualizando...
-            } @else if (isFollowingUser) {
-              Siguiendo
-            } @else {
-              Seguir
-            }
-          </button>
-        }
+        </div>
 
       </section>
 
+      <!-- MENSAJES -->
+      @if (successMessage) {
+        <div class="success-message">
+          <span class="bo-check" aria-hidden="true"></span>
+          {{ successMessage }}
+        </div>
+      }
+
+      @if (errorMessage) {
+        <div class="error-message">
+          {{ errorMessage }}
+        </div>
+      }
+
+      <!-- CONTENIDO PRINCIPAL Y COLUMNA LATERAL -->
+      <div class="profile-content-grid">
+
+        <div class="profile-main-column">
+          <!-- ACTIVIDAD -->
+          <section class="profile-panel activity-panel">
+
+            <div class="panel-heading">
+              <div>
+                <span class="panel-eyebrow">TU ACTIVIDAD</span>
+                <h2>{{ isOwnProfile ? 'Tu espacio personal' : 'Actividad ARMY' }}</h2>
+              </div>
+              <span class="panel-heading-icon">♡</span>
+            </div>
+
+            @if (isOwnProfile && reviewsLoading) {
+              <div class="activity-empty-state">
+                <span class="activity-loading-dot"></span>
+                <p>Cargando tu actividad...</p>
+              </div>
+            } @else if (isOwnProfile && reviewsError) {
+              <div class="activity-empty-state">
+                <p>{{ reviewsError }}</p>
+                <button type="button" class="explore-button" (click)="loadMyReviews()">Volver a intentar</button>
+              </div>
+            } @else if (isOwnProfile && myReviews.length > 0) {
+              <div class="activity-feed">
+                @for (review of myReviews.slice(0, 6); track review.id) {
+                  <article class="activity-review-card">
+                    <div class="activity-review-top">
+                      <div class="activity-mini-avatar">
+                        @if (avatarUrl) {
+                          <img [src]="avatarUrl" [alt]="'Avatar de ' + (displayName || username)" />
+                        } @else {
+                          <span>{{ (displayName || username || 'A').charAt(0).toUpperCase() }}</span>
+                        }
+                      </div>
+                      <div class="activity-review-author">
+                        <strong>{{ displayName || username || 'ARMY' }}</strong>
+                        <span>· {{ review.created_at | date:'d MMM yyyy' }}</span>
+                      </div>
+                      <span class="activity-review-type">{{ review.content_type === 'tv' ? 'Serie' : review.content_type === 'movie' ? 'Película' : review.content_type }}</span>
+                    </div>
+                    <button type="button" class="activity-review-content" (click)="openReviewedContent(review)">
+                      <span class="activity-review-title">{{ review.displayTitle }}</span>
+                      <span class="activity-review-rating" [attr.aria-label]="'Valoración ' + review.rating + ' de 5'">
+                        @for (star of [1, 2, 3, 4, 5]; track star) {
+                          <span [class.filled]="star <= review.rating">★</span>
+                        }
+                        <strong>{{ review.rating }}/5</strong>
+                      </span>
+                      @if (review.review_text) {
+                        <span class="activity-review-text">{{ review.review_text }}</span>
+                      }
+                    </button>
+                    <div class="activity-review-footer">
+                      <span>💜 Reseña compartida en Bangtan Olé</span>
+                      <button type="button" (click)="openReviewedContent(review)">Ver contenido →</button>
+                    </div>
+                  </article>
+                }
+              </div>
+            } @else {
+              <div class="activity-empty-state">
+                <div class="activity-placeholder-icon">💜</div>
+                <h3>{{ isOwnProfile ? 'Tu historia ARMY empieza aquí' : 'Todavía no hay actividad' }}</h3>
+                <p>
+                  {{ isOwnProfile
+                    ? 'Cuando publiques reseñas de tus series y películas favoritas, aparecerán aquí.'
+                    : 'Esta persona todavía no ha compartido actividad.' }}
+                </p>
+                @if (isOwnProfile) {
+                  <button type="button" class="explore-button" (click)="goHome()">Explorar Bangtan Olé</button>
+                }
+              </div>
+            }
+
+          </section>
+
+        </div>
+
+        <!-- COLUMNA LATERAL -->
+        <aside class="profile-sidebar">
+
+          <!-- SOBRE MÍ -->
+          <section class="profile-panel about-panel">
+
+            <div class="sidebar-heading">
+              <span class="sidebar-icon">ⓘ</span>
+              <h2>Sobre mí</h2>
+            </div>
+
+            <div class="about-description">
+              {{ bio || 'Todavía no has añadido una descripción. ¡Cuéntale algo a la comunidad!' }}
+            </div>
+
+            <div class="about-divider"></div>
+
+            <div class="about-detail">
+              <span class="about-detail-icon">♡</span>
+              <div>
+                <strong>Mi comunidad</strong>
+                <span>Bangtan Olé ARMY</span>
+              </div>
+            </div>
+
+            <div class="about-detail">
+              <span class="about-detail-icon">✧</span>
+              <div>
+                <strong>Seguidores</strong>
+                <span>{{ followersCount }} personas</span>
+              </div>
+            </div>
+
+            <div class="about-detail">
+              <span class="about-detail-icon">⌁</span>
+              <div>
+                <strong>Siguiendo</strong>
+                <span>{{ followingCount }} personas</span>
+              </div>
+            </div>
+
+            <div class="about-detail">
+              <span class="about-detail-icon">⌖</span>
+              <div>
+                <strong>Ubicación</strong>
+                <span>{{ location || country || 'Sin indicar' }}</span>
+              </div>
+            </div>
+
+            <div class="about-detail">
+              <span class="about-detail-icon">✧</span>
+              <div>
+                <strong>En Bangtan Olé desde</strong>
+                <span>{{ profile.created_at | date:'MMMM yyyy' }}</span>
+              </div>
+            </div>
+
+            @if (interestsText) {
+              <div class="profile-interest-tags">
+                @for (interest of interestsText.split(','); track $index) {
+                  <span>{{ interest.trim() }}</span>
+                }
+              </div>
+            }
+
+          </section>
+
+          <!-- AMIGAS: SEGUIMIENTO MUTUO -->
+          <section class="profile-panel friends-panel">
+            <div class="friends-heading">
+              <div class="friends-title">
+                <span class="friends-icon" aria-hidden="true">♧</span>
+                <h2>Amigas ({{ mutualFriends.length }})</h2>
+              </div>
+              <button
+                type="button"
+                class="friends-see-all"
+                (click)="openSocialList('friends')"
+                [disabled]="mutualFriends.length === 0"
+              >
+                Ver todas <span aria-hidden="true">→</span>
+              </button>
+            </div>
+
+            @if (mutualFriends.length > 0) {
+              <div class="friends-avatars">
+                @for (person of mutualFriends.slice(0, 4); track person.id) {
+                  <button
+                    type="button"
+                    class="friend-person"
+                    (click)="openSocialUser(person)"
+                    [attr.aria-label]="'Ver perfil de ' + (person.display_name || person.username || 'amiga')"
+                  >
+                    <span class="friend-avatar">
+                      @if (person.avatar_url) {
+                        <img [src]="person.avatar_url" [alt]="'Avatar de ' + (person.display_name || person.username || 'amiga')" />
+                      } @else {
+                        <span class="friend-initial">{{ (person.display_name || person.username || 'A').charAt(0).toUpperCase() }}</span>
+                      }
+                      <span class="friend-status" aria-label="Seguimiento mutuo"></span>
+                    </span>
+                    <span class="friend-name">{{ person.display_name || person.username || 'ARMY' }}</span>
+                  </button>
+                }
+              </div>
+            } @else {
+              <p class="friends-empty">Cuando tú y otra persona os sigáis mutuamente, aparecerá aquí 💜</p>
+            }
+          </section>
+
+        </aside>
+
+      </div>
+
       <!-- POPUP DE SEGUIDORES Y SEGUIDOS -->
-
-
-      <!-- POPUP DE SEGUIDORES Y SEGUIDOS -->
-
       @if (socialListType) {
         <div
           class="social-modal-backdrop"
@@ -137,14 +437,15 @@
             class="social-list-section"
             role="dialog"
             aria-modal="true"
-            [attr.aria-label]="socialListType === 'followers' ? 'Lista de seguidores' : 'Lista de seguidos'"
+            [attr.aria-label]="socialListType === 'followers' ? 'Lista de seguidores' : socialListType === 'following' ? 'Lista de seguidos' : 'Lista de amigas'"
             (click)="$event.stopPropagation()"
           >
 
             <div class="social-list-header">
               <div>
-                <h2>Tu comunidad</h2>
-                <small>Descubre quién está contigo en Bangtan Olé</small>
+                <span class="panel-eyebrow">BANGTAN OLÉ</span>
+                <h2>{{ socialListType === 'followers' ? 'Seguidores' : socialListType === 'following' ? 'Seguidos' : 'Amigas' }}</h2>
+                <small>Personas que forman parte de tu rincón ARMY</small>
               </div>
 
               <button
@@ -158,7 +459,7 @@
             </div>
 
             <!-- PESTAÑAS -->
-            <div class="social-modal-tabs" role="tablist" aria-label="Listas sociales">
+            <div class="social-modal-tabs" role="tablist">
 
               <button
                 type="button"
@@ -184,6 +485,18 @@
                 <span>{{ followingCount }}</span>
               </button>
 
+              <button
+                type="button"
+                class="social-modal-tab"
+                [class.active]="socialListType === 'friends'"
+                [attr.aria-selected]="socialListType === 'friends'"
+                role="tab"
+                (click)="openSocialList('friends')"
+              >
+                Amigas
+                <span>{{ mutualFriends.length }}</span>
+              </button>
+
             </div>
 
             <!-- CONTENIDO DE LA LISTA -->
@@ -199,8 +512,10 @@
                 <div class="social-empty">
                   @if (socialListType === 'followers') {
                     Todavía no tiene seguidores.
-                  } @else {
+                  } @else if (socialListType === 'following') {
                     Todavía no sigue a nadie.
+                  } @else {
+                    Todavía no hay amistades mutuas.
                   }
                 </div>
 
@@ -208,6 +523,7 @@
 
                 <div class="social-search-box">
                   <span class="bo-search social-search-icon" aria-hidden="true"></span>
+
                   <input
                     type="search"
                     name="socialSearch"
@@ -215,13 +531,16 @@
                     placeholder="Buscar por nombre o usuario..."
                     aria-label="Buscar en esta lista"
                   />
+
                   @if (socialSearch) {
                     <button
                       type="button"
                       class="social-search-clear"
                       (click)="socialSearch = ''"
                       aria-label="Limpiar búsqueda"
-                    ><span class="bo-x" aria-hidden="true"></span></button>
+                    >
+                      <span class="bo-x" aria-hidden="true"></span>
+                    </button>
                   }
                 </div>
 
@@ -231,8 +550,10 @@
                   </div>
                 } @else {
                   <div class="social-users">
+
                     @for (person of filteredSocialUsers; track person.id) {
                       <div class="social-user">
+
                         <button
                           type="button"
                           class="social-user-open"
@@ -252,8 +573,12 @@
                           </div>
 
                           <div class="social-user-info">
-                            <strong>{{ person.display_name || person.username || 'Usuario ARMY' }}</strong>
-                            <small>{{ person.username ? '@' + person.username : 'Comunidad Bangtan Olé' }}</small>
+                            <strong>
+                              {{ person.display_name || person.username || 'Usuario ARMY' }}
+                            </strong>
+                            <small>
+                              {{ person.username ? '@' + person.username : 'Comunidad Bangtan Olé' }}
+                            </small>
                           </div>
                         </button>
 
@@ -263,7 +588,8 @@
                             class="social-follow-button"
                             [class.following]="socialFollowStates[person.id]"
                             [disabled]="socialFollowLoadingIds.has(person.id)"
-                            (click)="toggleSocialUserFollow(person)">
+                            (click)="toggleSocialUserFollow(person)"
+                          >
                             @if (socialFollowLoadingIds.has(person.id)) {
                               ...
                             } @else {
@@ -271,10 +597,13 @@
                             }
                           </button>
                         }
+
                       </div>
                     }
+
                   </div>
                 }
+
               }
 
             </div>
@@ -283,102 +612,8 @@
         </div>
       }
 
-
-      <!-- PERFIL PROPIO -->
-
-      @if (isOwnProfile) {
-
-        <form (ngSubmit)="saveProfile()">
-
-          <section class="profile-section">
-            <h2>Mis datos personales</h2>
-
-            <div class="form-group">
-              <label for="username">Nombre de usuario</label>
-              <input
-                id="username"
-                type="text"
-                name="username"
-                [(ngModel)]="username"
-                placeholder="Tu nombre de usuario"
-                maxlength="30"
-              />
-            </div>
-
-            <div class="form-group">
-              <label for="displayName">Nombre</label>
-              <input
-                id="displayName"
-                type="text"
-                name="displayName"
-                [(ngModel)]="displayName"
-                placeholder="¿Cómo quieres que te llamemos?"
-                maxlength="50"
-              />
-            </div>
-
-            <div class="form-group">
-              <label for="email">Correo electrónico</label>
-              <input
-                id="email"
-                type="email"
-                name="email"
-                [value]="email"
-                disabled
-              />
-              <small>El correo está vinculado a tu cuenta.</small>
-            </div>
-
-            <div class="form-group">
-              <label for="bio">Sobre mí</label>
-              <textarea
-                id="bio"
-                name="bio"
-                [(ngModel)]="bio"
-                placeholder="Cuéntanos algo sobre ti..."
-                rows="4"
-                maxlength="300"
-              ></textarea>
-              <small>{{ bio.length }} / 300 caracteres</small>
-            </div>
-          </section>
-
-          @if (successMessage) {
-            <div class="success-message">{{ successMessage }}</div>
-          }
-
-          @if (errorMessage) {
-            <div class="error-message">{{ errorMessage }}</div>
-          }
-
-          <button
-            type="submit"
-            class="save-button"
-            [disabled]="saving"
-          >
-            {{ saving ? 'Guardando...' : 'Guardar cambios' }}
-          </button>
-
-        </form>
-
-      } @else {
-
-        <!-- PERFIL PÚBLICO -->
-
-        <section class="profile-section public-profile-bio">
-          <h2>Sobre mí</h2>
-          <p>
-            {{ bio || 'Esta persona todavía no ha añadido una descripción.' }}
-          </p>
-        </section>
-
-        @if (errorMessage) {
-          <div class="error-message">{{ errorMessage }}</div>
-        }
-
-      }
-
+    </main>
     }
+  }
 
-  </main>
 </div>

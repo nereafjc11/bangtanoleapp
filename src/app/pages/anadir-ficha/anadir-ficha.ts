@@ -52,12 +52,12 @@ export class AnadirFicha implements OnInit, OnDestroy {
 
   checking = false;
   saving = false;
+  verificationFailed = false;
 
   error = '';
   notice = '';
 
   showDuplicate = false;
-  duplicateDismissed = false;
   duplicateItem: CommunityCatalogItem | null = null;
 
   // Datos recuperados de TMDB para fichas antiguas.
@@ -178,37 +178,43 @@ export class AnadirFicha implements OnInit, OnDestroy {
     if (this.category === category) return;
 
     this.category = category;
+    this.searchRequest++;
+    this.similarPosterRequest++;
+
+    if (this.searchTimer) {
+      clearTimeout(this.searchTimer);
+      this.searchTimer = null;
+    }
+
     this.details = {};
     this.selectedTmdb = null;
     this.tmdbResults = [];
     this.communityMatches = [];
     this.similarTmdbPosterPath = null;
-
     this.showSimilar = false;
     this.showDuplicate = false;
     this.duplicateItem = null;
     this.duplicateTmdbId = null;
     this.duplicateTmdbPosterPath = null;
     this.confirmedDifferent = false;
-
+    this.checking = false;
+    this.verificationFailed = false;
     this.notice = '';
     this.error = '';
-
-    if (this.searchTimer) {
-      clearTimeout(this.searchTimer);
-    }
-
     this.originalTitle = '';
     this.year = null;
   }
+
   dismissDuplicate(): void {
-  this.showDuplicate = false;
-  this.duplicateDismissed = true;
-}
+    // Cerrar el aviso no elimina la coincidencia: save() seguirá bloqueándola.
+    this.showDuplicate = false;
+  }
 
   onTitleChange(): void {
     this.error = '';
     this.notice = '';
+    this.searchRequest++;
+    this.similarPosterRequest++;
     this.showSimilar = false;
     this.showDuplicate = false;
     this.duplicateItem = null;
@@ -216,78 +222,98 @@ export class AnadirFicha implements OnInit, OnDestroy {
     this.duplicateTmdbPosterPath = null;
     this.confirmedDifferent = false;
     this.selectedTmdb = null;
-    this.duplicateDismissed = false;
+    this.tmdbResults = [];
+    this.communityMatches = [];
+    this.similarTmdbPosterPath = null;
+    this.verificationFailed = false;
+    this.checking = false;
+
     if (this.searchTimer) {
       clearTimeout(this.searchTimer);
+      this.searchTimer = null;
     }
 
     const value = this.title.trim();
-
-    if (!this.usesTmdb || value.length < 2) {
-      this.tmdbResults = [];
-      this.communityMatches = [];
-      this.similarTmdbPosterPath = null;
-      return;
-    }
+    if (!this.usesTmdb || value.length < 2) return;
 
     this.searchTimer = setTimeout(() => {
+      this.searchTimer = null;
       void this.checkMatches(value);
     }, 450);
   }
 
   async checkMatches(value = this.title.trim()): Promise<void> {
-    if (!this.usesTmdb || value.length < 2) return;
+    if (!this.usesTmdb || value.trim().length < 2) return;
 
     const request = ++this.searchRequest;
+    const category = this.category as 'movie' | 'tv';
     this.checking = true;
+    this.verificationFailed = false;
+    this.error = '';
 
     try {
-      const [tmdbResults, communityMatches] = await Promise.all([
-        this.tmdb.search(value, this.category as 'movie' | 'tv').catch(() => [] as CatalogItem[]),
-
-        this.community.findMatches(value, this.category as 'movie' | 'tv'),
+      const [tmdbResult, communityResult] = await Promise.allSettled([
+        this.tmdb.search(value, category),
+        this.community.findMatches(value, category),
       ]);
 
       if (request !== this.searchRequest) return;
 
-      this.tmdbResults = tmdbResults.slice(0, 8);
-      this.communityMatches = communityMatches;
-      this.similarTmdbPosterPath = null;
-      if (communityMatches.length) {
-        void this.loadSimilarPoster(communityMatches[0]);
+      this.tmdbResults = tmdbResult.status === 'fulfilled'
+        ? tmdbResult.value.slice(0, 8)
+        : [];
+      this.communityMatches = communityResult.status === 'fulfilled'
+        ? communityResult.value
+        : [];
+
+      if (tmdbResult.status === 'rejected' || communityResult.status === 'rejected') {
+        this.verificationFailed = true;
+        this.error = 'No hemos podido comprobar todas las coincidencias. No publiques todavía la ficha; inténtalo de nuevo.';
+        return;
       }
 
-      const exact = communityMatches.find((item) => {
+      this.similarTmdbPosterPath = null;
+      if (this.communityMatches.length) {
+        void this.loadSimilarPoster(this.communityMatches[0]);
+      }
+
+      const exact = this.communityMatches.find((item) => {
         const sameTitle = this.normalize(item.title) === this.normalize(value);
-
-        const sameYear = this.year === null || item.release_year === this.year;
-
+        const sameYear = item.release_year === this.year;
         return sameTitle && sameYear;
       });
 
       if (exact) {
+        // Una coincidencia exacta se avisa inmediatamente al escribir el título.
         this.duplicateItem = exact;
+        this.showSimilar = false;
+        this.confirmedDifferent = false;
+        this.showDuplicate = true;
         await this.loadDuplicatePoster(exact);
-
-        if (request === this.searchRequest) {
-          this.showDuplicate = true;
-        }
+        if (request !== this.searchRequest) return;
       } else {
+        this.duplicateItem = null;
+        this.showDuplicate = false;
         this.showSimilar = false;
         this.confirmedDifferent = false;
       }
-    } catch (error: any) {
-      this.error = error?.message || 'No se han podido comprobar las coincidencias.';
+    } catch (error) {
+      console.error('Error comprobando coincidencias:', error);
+      if (request === this.searchRequest) {
+        this.verificationFailed = true;
+        this.error = 'No hemos podido comprobar las coincidencias. Inténtalo de nuevo.';
+      }
     } finally {
       if (request === this.searchRequest) {
         this.checking = false;
+        this.cdr.detectChanges();
       }
     }
   }
 
   async chooseTmdb(item: CatalogItem): Promise<void> {
+    this.searchRequest++;
     this.selectedTmdb = item;
-
     this.title = item.title || item.name || this.title;
     this.originalTitle = item.title || item.name || '';
 
@@ -296,15 +322,17 @@ export class AnadirFicha implements OnInit, OnDestroy {
     this.overview = item.overview || '';
 
     this.duplicateItem = null;
+    this.duplicateTmdbId = null;
+    this.duplicateTmdbPosterPath = null;
     this.showDuplicate = false;
     this.showSimilar = false;
     this.confirmedDifferent = false;
+    this.verificationFailed = false;
     this.notice = '';
     this.error = '';
 
     try {
       const existing = await this.community.findByTmdbId(item.id, this.category);
-
       if (existing) {
         this.duplicateItem = existing;
         await this.loadDuplicatePoster(existing);
@@ -314,7 +342,6 @@ export class AnadirFicha implements OnInit, OnDestroy {
       }
 
       const exact = await this.community.findExactTitle(this.title, this.year, this.category);
-
       if (exact) {
         this.duplicateItem = exact;
         await this.loadDuplicatePoster(exact);
@@ -323,12 +350,17 @@ export class AnadirFicha implements OnInit, OnDestroy {
         return;
       }
 
-      // El resultado de TMDB no se copia automáticamente a Supabase.
-      this.notice = 'Datos de TMDB añadidos. Puedes editarlos.';
+      this.notice = 'Este contenido está disponible en TMDB. Ábrelo para valorarlo y reseñarlo.';
     } catch (error) {
       console.error('Error comprobando la ficha existente:', error);
-      this.error = 'No hemos podido comprobar si esta ficha ya existe. Inténtalo de nuevo.';
+      this.verificationFailed = true;
+      this.error = 'No hemos podido comprobar si ya existe una ficha comunitaria. Puedes abrir la ficha de TMDB, pero no crear una copia.';
     }
+  }
+
+  openSelectedTmdb(): void {
+    if (!this.selectedTmdb || !this.usesTmdb) return;
+    void this.router.navigate(['/contenido', this.category, this.selectedTmdb.id]);
   }
 
   onPosterSelected(event: Event): void {
@@ -369,14 +401,10 @@ export class AnadirFicha implements OnInit, OnDestroy {
   }
 
   confirmDifferent(): void {
-  if (!this.confirmedDifferent) return;
-
-  this.showSimilar = false;
-  this.showDuplicate = false;
-  this.duplicateDismissed = true;
-
-  void this.save();
-}
+    if (!this.confirmedDifferent || this.verificationFailed) return;
+    this.showSimilar = false;
+    void this.save();
+  }
 
  private async loadDuplicatePoster(item: CommunityCatalogItem): Promise<void> {
   this.duplicateTmdbPosterPath = null;
@@ -505,57 +533,48 @@ export class AnadirFicha implements OnInit, OnDestroy {
 
   async save(): Promise<void> {
     this.error = '';
+    if (this.saving) return;
 
     if (!this.categories.some((item) => item.id === this.category)) {
       this.error = 'Selecciona una de tus categorías disponibles.';
       return;
     }
-
     if (!this.title.trim()) {
       this.error = 'Escribe un título antes de continuar.';
       return;
     }
-
-    // Una coincidencia exacta nunca puede saltarse cerrando el modal.
-    if (this.duplicateItem && !this.duplicateDismissed) {
-  this.showDuplicate = true;
-  this.showSimilar = false;
-  return;
-}
-
-    // Si existe en TMDB, no se crea una copia comunitaria.
+    if (this.checking) {
+      this.error = 'Espera a que termine la comprobación de coincidencias.';
+      return;
+    }
+    if (this.usesTmdb && this.verificationFailed) {
+      this.error = 'No se han podido comprobar las coincidencias. Inténtalo de nuevo antes de publicar.';
+      return;
+    }
     if (this.usesTmdb && this.selectedTmdb) {
-      this.error =
-        'Esta película o serie ya existe en TMDB. Accede a su ficha para valorarla y reseñarla.';
+      this.notice = 'Este contenido ya tiene ficha en TMDB. Ábrela para valorarlo y reseñarlo.';
       return;
     }
-    if (this.usesTmdb && this.communityMatches.length > 0 && !this.confirmedDifferent) {
-      this.showSimilar = true;
-      return;
-    }
-
     const missing = this.selectedCategory.fields
       .filter((field) => field.required)
       .some((field) => !String(this.details[field.key] ?? '').trim());
-
     if (missing) {
       this.error = 'Completa los campos obligatorios de esta categoría.';
       return;
     }
 
-    // Comprobar si hay títulos parecidos.
-    if (this.usesTmdb && this.communityMatches.length && !this.confirmedDifferent) {
+    // Al pulsar «Crear ficha», mostrar siempre la comparación de similitudes
+    // si la búsqueda encontró fichas comunitarias. El aviso de duplicado ya
+    // se muestra mientras se escribe; cerrarlo permite revisar la comparación.
+    // La protección definitiva contra duplicados exactos sigue en el servicio.
+    if (this.usesTmdb && this.communityMatches.length > 0 && !this.confirmedDifferent) {
+      this.showDuplicate = false;
       this.showSimilar = true;
       return;
     }
-
-    // La confirmación de similitudes solo se acepta si se ha marcado.
-    if (this.showSimilar && !this.confirmedDifferent) {
-      return;
-    }
+    if (this.showSimilar && !this.confirmedDifferent) return;
 
     this.saving = true;
-
     try {
       const item = await this.community.create({
         category: this.category,
@@ -563,26 +582,18 @@ export class AnadirFicha implements OnInit, OnDestroy {
         original_title: this.originalTitle || null,
         release_year: this.year,
         overview: this.overview,
-
-        country:
-          this.country || (this.category === 'travel' ? String(this.details['country'] ?? '') : ''),
-
-        genres: this.genresText
-          .split(',')
-          .map((value) => value.trim())
-          .filter(Boolean),
-
+        country: this.country || (this.category === 'travel' ? String(this.details['country'] ?? '') : ''),
+        genres: this.genresText.split(',').map((value) => value.trim()).filter(Boolean),
         tmdb_id: null,
         poster: this.posterFile,
         details: this.details,
       });
-
       await this.router.navigate(['/ficha-comunidad', item.id]);
     } catch (error: any) {
       const message = error?.message || 'No se ha podido publicar la ficha.';
-
       if (message.startsWith('DUPLICATE:')) {
-        await this.router.navigate(['/ficha-comunidad', message.split(':')[1]]);
+        const duplicateId = message.split(':')[1];
+        await this.router.navigate(['/ficha-comunidad', duplicateId]);
       } else {
         this.error = message;
       }

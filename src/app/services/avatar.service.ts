@@ -65,5 +65,41 @@ export class AvatarService {
 
     return `${data.publicUrl}?v=${Date.now()}`;
   }
-  
+
+  /**
+   * Sube la portada en una ruta independiente para no sobrescribir el avatar.
+   */
+  async uploadCover(file: File): Promise<string> {
+    const supabase = this.supabaseService.client;
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+
+    if (userError || !user) {
+      throw new Error('No hay ninguna usuaria autenticada.');
+    }
+
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+    if (!allowedTypes.includes(file.type)) {
+      throw new Error('El formato debe ser JPG, PNG o WEBP.');
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      throw new Error('La portada no puede superar los 5 MB.');
+    }
+
+    const extension = file.type === 'image/jpeg' ? 'jpg' : file.type.split('/')[1];
+    const filePath = `${user.id}/cover.${extension}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from(this.bucket)
+      .upload(filePath, file, { upsert: true, contentType: file.type });
+
+    if (uploadError) {
+      console.error('Error al subir la portada:', uploadError);
+      throw uploadError;
+    }
+
+    const { data } = supabase.storage.from(this.bucket).getPublicUrl(filePath);
+    return `${data.publicUrl}?v=${Date.now()}`;
+  }
+
 }

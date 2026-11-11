@@ -107,9 +107,10 @@ export class CommunityCatalogService {
       .select('*')
       .eq('category_slug', this.categorySlug(category))
       .eq('content_type', category)
-      .ilike('title', clean)
+      // Escapar comodines para que % y _ se busquen como caracteres literales.
+      .ilike('title', this.escapeLike(clean))
       .order('created_at', { ascending: false })
-      .limit(20);
+      .limit(100);
 
     if (error) throw error;
 
