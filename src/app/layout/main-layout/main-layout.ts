@@ -525,6 +525,61 @@ onNotificationsMouseLeave(): void {
     return 'compass';
   }
 
+  getCategoryRoute(category: any): string[] {
+  const value = `${category?.slug ?? ''} ${category?.name ?? ''}`
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '');
+
+  // Películas y series conservan su componente y su API TMDB.
+  if (
+    value.includes('serie') ||
+    value.includes('pelicula') ||
+    value.includes('cine') ||
+    value.includes('film')
+  ) {
+    return ['/peliculas-series'];
+  }
+
+  // Libros
+  if (
+    value.includes('libro') ||
+    value.includes('lectura') ||
+    value.includes('book')
+  ) {
+    return ['/catalogo-dinamico', 'libros'];
+  }
+
+  // Música
+  if (value.includes('musica') || value.includes('music')) {
+    return ['/catalogo-dinamico', 'musica'];
+  }
+
+  // Skincare
+  if (
+    value.includes('skincare') ||
+    value.includes('cuidado-piel') ||
+    value.includes('cuidado de la piel')
+  ) {
+    return ['/catalogo-dinamico', 'skincare'];
+  }
+
+  // Belleza
+  if (
+    value.includes('belleza') ||
+    value.includes('beauty') ||
+    value.includes('maquillaje')
+  ) {
+    return ['/catalogo-dinamico', 'belleza'];
+  }
+
+  // Si todavía no hay un catálogo específico para la categoría,
+  // abrimos el catálogo dinámico con su slug.
+  return ['/catalogo-dinamico', category?.slug || 'libros'];
+}
+
   cerrarMenu(): void { this.menuOpen = false; }
   alternarMenu(): void { this.menuOpen = !this.menuOpen; }
 }
+
+

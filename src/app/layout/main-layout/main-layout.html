@@ -41,15 +41,20 @@
       } @else if (myCategories.length > 0) {
 
         @for (category of myCategories; track category.id) {
-          <a
-            [routerLink]="category.slug.includes('series') && category.slug.includes('peliculas') ? ['/peliculas-series'] : ['/home']"
-            [queryParams]="category.slug.includes('series') && category.slug.includes('peliculas') ? null : { category: category.slug }"
-            routerLinkActive="active"
-            (click)="cerrarMenu()">
-            <span class="nav-icon" [attr.class]="'nav-icon bo-' + getCategoryIcon(category)" aria-hidden="true"></span>
-            <span>{{ category.name }}</span>
-          </a>
-        }
+  <a
+    [routerLink]="getCategoryRoute(category)"
+    routerLinkActive="active"
+    (click)="cerrarMenu()">
+
+    <span
+      class="nav-icon"
+      [attr.class]="'nav-icon bo-' + getCategoryIcon(category)"
+      aria-hidden="true">
+    </span>
+
+    <span>{{ category.name }}</span>
+  </a>
+}
 
       } @else {
         <p class="nav-message">

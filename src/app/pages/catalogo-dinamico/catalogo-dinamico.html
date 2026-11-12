@@ -1,0 +1,207 @@
+
+<div class="explore-page">
+  <section class="catalog-section">
+
+    <!-- CABECERA -->
+    <header class="catalog-header">
+      <div class="catalog-heading-main">
+        <span class="catalog-category-icon" aria-hidden="true">
+          {{ iconoCategoria }}
+        </span>
+
+        <div class="catalog-heading-copy">
+          <h1>{{ configuracion.title }}</h1>
+          <p>{{ configuracion.description }}</p>
+        </div>
+      </div>
+
+      <a
+        class="add-community-link"
+        routerLink="/peliculas-series/anadir"
+        [queryParams]="{ category: categoriaActual }">
+        <span aria-hidden="true">＋</span>
+        Añadir ficha
+      </a>
+    </header>
+
+    <!-- BARRA DE FILTROS -->
+    <div class="catalog-toolbar">
+
+      <details class="filters-panel">
+        <summary class="filters-summary">
+          <span class="filters-summary-left">
+            <span class="filters-icon">
+              <i class="bo-settings" aria-hidden="true"></i>
+            </span>
+
+            <span class="filters-summary-text">
+              <strong>Filtros</strong>
+              <small>Filtra el contenido por categoría</small>
+            </span>
+          </span>
+
+          <span class="filters-summary-right">
+            <span class="filter-active-count">
+              {{ filtroActual === 'Todos' ? 0 : 1 }}
+            </span>
+            <i class="bo-chevron-down filters-chevron" aria-hidden="true"></i>
+          </span>
+        </summary>
+
+        <div class="advanced-filters">
+          <div class="filter-group">
+            <span class="filter-title">Categoría</span>
+
+            <div class="filter-list">
+              <button
+                *ngFor="let filtro of configuracion.filters"
+                type="button"
+                [class.active]="filtroActual === filtro"
+                [attr.aria-pressed]="filtroActual === filtro"
+                (click)="cambiarFiltro(filtro)">
+                {{ filtro }}
+              </button>
+            </div>
+          </div>
+        </div>
+      </details>
+
+      <div class="toolbar-actions">
+        <span class="results-count">
+          {{ elementosFiltrados.length }}
+          {{ elementosFiltrados.length === 1 ? 'resultado' : 'resultados' }}
+        </span>
+
+        <div class="view-switch" role="group" aria-label="Tipo de vista">
+          <button
+            type="button"
+            [class.active]="vista === 'grid'"
+            [attr.aria-pressed]="vista === 'grid'"
+            aria-label="Vista cuadrícula"
+            title="Cuadrícula"
+            (click)="cambiarVista('grid')">
+            <i class="bo-grid" aria-hidden="true"></i>
+          </button>
+
+          <button
+            type="button"
+            [class.active]="vista === 'list'"
+            [attr.aria-pressed]="vista === 'list'"
+            aria-label="Vista lista"
+            title="Lista"
+            (click)="cambiarVista('list')">
+            <i class="bo-menu" aria-hidden="true"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- FILTROS ACTIVOS -->
+    <div class="active-filters">
+      <span>Mostrando:</span>
+      <strong>{{ configuracion.title }}</strong>
+      <span>·</span>
+      <strong>
+        {{ filtroActual === 'Todos' ? 'Todas las categorías' : filtroActual }}
+      </strong>
+    </div>
+
+    <!-- CABECERA DE RESULTADOS -->
+    <div class="results-heading">
+      <div>
+        <span class="eyebrow">TU CATÁLOGO</span>
+        <h3>{{ configuracion.title }} para descubrir</h3>
+      </div>
+
+      <span class="results-count">
+        {{ elementosFiltrados.length }}
+        {{ elementosFiltrados.length === 1 ? 'elemento' : 'elementos' }}
+      </span>
+    </div>
+
+    <!-- CARGANDO -->
+    @if (loading) {
+      <div class="catalog-message" aria-live="polite">
+        <span class="loading-indicator"></span>
+        <p>Cargando {{ configuracion.title.toLowerCase() }}...</p>
+      </div>
+    }
+
+    <!-- ERROR -->
+    @else if (error) {
+      <div class="catalog-message catalog-error" role="alert">
+        <h3>No hemos podido cargar el catálogo</h3>
+        <p>{{ error }}</p>
+        <button type="button" (click)="reintentar()">
+          Volver a intentar
+        </button>
+      </div>
+    }
+
+    <!-- CATÁLOGO -->
+    @else {
+      <section
+        class="catalog-grid"
+        [class.list-view]="vista === 'list'"
+        *ngIf="elementosFiltrados.length > 0; else emptyState">
+
+        <article
+          class="catalog-card"
+          role="link"
+          tabindex="0"
+          [attr.aria-label]="'Ver ficha de ' + getTitle(item)"
+          (click)="openDetails(item)"
+          (keydown.enter)="openDetails(item)"
+          *ngFor="let item of elementosFiltrados; trackBy: trackById">
+
+          <div class="poster-wrapper">
+            <img
+              *ngIf="item.poster_url; else imagePlaceholder"
+              [src]="item.poster_url"
+              [alt]="'Imagen de ' + getTitle(item)"
+              loading="lazy"
+              decoding="async">
+
+            <ng-template #imagePlaceholder>
+              <div class="poster-placeholder">
+                <span class="poster-placeholder-icon">
+                  {{ iconoCategoria }}
+                </span>
+                <span class="placeholder-title">
+                  {{ getTitle(item) }}
+                </span>
+              </div>
+            </ng-template>
+          </div>
+
+          <div class="card-info">
+            <h3>{{ getTitle(item) }}</h3>
+            <p class="card-brand">{{ getSubtitle(item) }}</p>
+            <span class="card-category">
+              {{ getCardCategory(item) }}
+            </span>
+          </div>
+        </article>
+      </section>
+
+      <!-- SIN RESULTADOS -->
+      <ng-template #emptyState>
+        <div class="empty-state">
+          <span class="empty-state-icon">
+            <i class="bo-search" aria-hidden="true"></i>
+          </span>
+
+          <h3>No hemos encontrado resultados</h3>
+          <p>Prueba con otra categoría o revisa los filtros.</p>
+
+          <button
+            type="button"
+            (click)="cambiarFiltro('Todos')">
+            Quitar filtros
+          </button>
+        </div>
+      </ng-template>
+    }
+
+  </section>
+</div>

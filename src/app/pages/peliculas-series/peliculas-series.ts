@@ -30,6 +30,7 @@ export class PeliculasSeries implements OnInit, OnDestroy {
 
   query = '';
   searched = false;
+  vista: 'grid' | 'list' = 'grid';
 
   section: CatalogSection = 'movie';
 
@@ -103,6 +104,10 @@ export class PeliculasSeries implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.globalSearchSubscription?.unsubscribe();
     this.routeQuerySubscription?.unsubscribe();
+  }
+
+  cambiarVista(vista: 'grid' | 'list'): void {
+    this.vista = vista;
   }
 
   // =====================================

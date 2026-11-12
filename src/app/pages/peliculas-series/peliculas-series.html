@@ -2,16 +2,16 @@
 
   <section class="catalog-section">
 
-    <div class="section-heading">
-
-      <a class="add-community-link" routerLink="/peliculas-series/anadir">＋ Añadir ficha</a>
-
-      <div>
-        <span class="eyebrow">EL UNIVERSO BANGTAN OLÉ</span>
-        <h2>Explora el catálogo</h2>
+    <header class="catalog-header movie-header">
+      <div class="catalog-heading-main">
+        <span class="catalog-category-icon" aria-hidden="true">✦</span>
+        <div class="catalog-heading-copy">
+          <h1>Series y películas</h1>
+          <p>Descubre películas, series, anime y entretenimiento para tu próximo maratón.</p>
+        </div>
       </div>
-      <p>Historias y entretenimiento para cada momento.</p>
-    </div>
+      <a class="add-community-link" routerLink="/peliculas-series/anadir">＋ Añadir ficha</a>
+    </header>
 
     <!-- SECCIONES PRINCIPALES -->
     <div class="filter-group section-filter">
@@ -287,13 +287,25 @@
         </h3>
       </div>
 
-      <span class="results-count">
-        {{ filteredResults.length }}
-        {{ filteredResults.length === 1 ? 'título' : 'títulos' }}
-      </span>
+      <div class="results-actions">
+        <span class="results-count">
+          {{ filteredResults.length }}
+          {{ filteredResults.length === 1 ? 'título' : 'títulos' }}
+        </span>
+        <div class="view-switch" role="group" aria-label="Tipo de vista">
+          <button type="button" [class.active]="vista === 'grid'"
+                  [attr.aria-pressed]="vista === 'grid'"
+                  aria-label="Vista en cuadrícula" title="Cuadrícula"
+                  (click)="cambiarVista('grid')">▦</button>
+          <button type="button" [class.active]="vista === 'list'"
+                  [attr.aria-pressed]="vista === 'list'"
+                  aria-label="Vista en lista" title="Lista"
+                  (click)="cambiarVista('list')">☷</button>
+        </div>
+      </div>
     </div>
 
-    <div class="catalog-grid">
+    <div class="catalog-grid" [class.catalog-list]="vista === 'list'">
 
       @for (item of filteredResults; track item.id) {
 

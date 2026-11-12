@@ -67,6 +67,12 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./pages/ficha-comunidad/ficha-comunidad').then((m) => m.FichaComunidad),
       },
+      {
+  path: 'catalogo-dinamico/:categoria',
+  loadComponent: () =>
+    import('./pages/catalogo-dinamico/catalogo-dinamico')
+      .then(m => m.CatalogoDinamico)
+}
     ],
   },
   {
