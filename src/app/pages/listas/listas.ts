@@ -19,7 +19,7 @@ interface ListContentView {
 @Component({
   selector: 'app-listas',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [CommonModule, FormsModule],
   templateUrl: './listas.html',
   styleUrl: './listas.css',
 })

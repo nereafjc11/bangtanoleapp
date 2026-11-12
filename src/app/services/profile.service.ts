@@ -13,6 +13,7 @@ export interface UserProfile {
   location: string | null;
   interests: string[];
   website_url: string | null;
+  birthday_date: string | null;
   is_private: boolean;
   created_at: string;
   updated_at: string;
@@ -39,7 +40,7 @@ export class ProfileService {
 
     const { data, error } = await this.supabaseService.client
       .from('profiles')
-      .select('id, username, display_name, avatar_url, bio, cover_url, country, location, interests, website_url, is_private, created_at, updated_at')
+      .select('id, username, display_name, avatar_url, bio, cover_url, country, location, interests, website_url, birthday_date, is_private, created_at, updated_at')
       .eq('id', user.id)
       .single();
 
@@ -54,7 +55,7 @@ export class ProfileService {
   async getPublicProfile(userId: string): Promise<UserProfile> {
     const { data, error } = await this.supabaseService.client
       .from('profiles')
-      .select('id, username, display_name, avatar_url, bio, cover_url, country, location, interests, website_url, is_private, created_at, updated_at')
+      .select('id, username, display_name, avatar_url, bio, cover_url, country, location, interests, website_url, birthday_date, is_private, created_at, updated_at')
       .eq('id', userId)
       .single();
 
@@ -75,7 +76,7 @@ export class ProfileService {
 
     const { data, error } = await this.supabaseService.client
       .from('profiles')
-      .select('id, username, display_name, avatar_url, bio, cover_url, country, location, interests, website_url, is_private, created_at, updated_at')
+      .select('id, username, display_name, avatar_url, bio, cover_url, country, location, interests, website_url, birthday_date, is_private, created_at, updated_at')
       .in('id', uniqueIds);
 
     if (error) {
@@ -87,7 +88,7 @@ export class ProfileService {
   }
 
   async updateMyProfile(
-    profile: Pick<UserProfile, 'username' | 'display_name' | 'bio'> & Partial<Pick<UserProfile, 'cover_url' | 'country' | 'location' | 'interests' | 'website_url' | 'is_private'>>
+    profile: Pick<UserProfile, 'username' | 'display_name' | 'bio'> & Partial<Pick<UserProfile, 'avatar_url' | 'cover_url' | 'country' | 'location' | 'interests' | 'website_url' | 'birthday_date' | 'is_private'>>
   ): Promise<void> {
     const {
       data: { user },
@@ -104,11 +105,13 @@ export class ProfileService {
         username: profile.username,
         display_name: profile.display_name,
         bio: profile.bio,
+        ...(profile.avatar_url !== undefined ? { avatar_url: profile.avatar_url } : {}),
         ...(profile.cover_url !== undefined ? { cover_url: profile.cover_url } : {}),
         ...(profile.country !== undefined ? { country: profile.country } : {}),
         ...(profile.location !== undefined ? { location: profile.location } : {}),
         ...(profile.interests !== undefined ? { interests: profile.interests } : {}),
         ...(profile.website_url !== undefined ? { website_url: profile.website_url } : {}),
+        ...(profile.birthday_date !== undefined ? { birthday_date: profile.birthday_date } : {}),
         ...(profile.is_private !== undefined ? { is_private: profile.is_private } : {})
       })
       .eq('id', user.id);
@@ -335,7 +338,7 @@ export class ProfileService {
     const { data: profiles, error: profilesError } =
       await this.supabaseService.client
         .from('profiles')
-        .select('id, username, display_name, avatar_url, bio, cover_url, country, location, interests, website_url, is_private, created_at, updated_at')
+        .select('id, username, display_name, avatar_url, bio, cover_url, country, location, interests, website_url, birthday_date, is_private, created_at, updated_at')
         .in('id', ids);
 
     if (profilesError) {
@@ -373,7 +376,7 @@ export class ProfileService {
     const { data: profiles, error: profilesError } =
       await this.supabaseService.client
         .from('profiles')
-        .select('id, username, display_name, avatar_url, bio, cover_url, country, location, interests, website_url, is_private, created_at, updated_at')
+        .select('id, username, display_name, avatar_url, bio, cover_url, country, location, interests, website_url, birthday_date, is_private, created_at, updated_at')
         .in('id', ids);
 
     if (profilesError) {

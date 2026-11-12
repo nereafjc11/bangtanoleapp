@@ -3,7 +3,7 @@
   @if (loading) {
     <div class="profile-loading">
       <div class="loading-orbit"></div>
-      <p>Preparando tu rincón ARMY...</p>
+      <p>Preparando tu perfil...</p>
     </div>
   } @else if (errorMessage && !profile) {
     <div class="profile-error">
@@ -14,31 +14,36 @@
 
     @if (isOwnProfile && showEditProfile && profile) {
       <main class="profile-layout edit-page-layout">
-        <div class="edit-page-top">
-          <button type="button" class="back-edit-button" (click)="cancelEditProfile()">← Volver al perfil</button>
-          <div>
-            <span class="panel-eyebrow">PERSONALIZA TU ESPACIO ARMY</span>
-            <h1>Editar perfil</h1>
-            <p>Haz que tu rincón de Bangtan Olé hable de ti 💜</p>
-          </div>
-        </div>
 
         @if (errorMessage) { <div class="error-message">{{ errorMessage }}</div> }
 
         <form class="edit-profile-page" (ngSubmit)="saveProfile()">
           <section class="edit-cover-preview">
-            <div class="edit-cover-image" [style.background-image]="coverPreviewUrl ? 'url(' + coverPreviewUrl + ')' : (coverUrl ? 'url(' + coverUrl + ')' : null)">
+            <div class="edit-cover-image"
+              [style.background-image]="coverPreviewUrl ? 'url(' + coverPreviewUrl + ')' : (coverUrl ? 'url(' + coverUrl + ')' : null)"
+              [style.background-position]="coverPositionX + '% ' + coverPositionY + '%'"
+              [style.background-size]="(coverZoom * 100) + '% auto'"
+              [class.cover-draggable]="!!selectedCoverFile"
+              [class.cover-dragging]="coverDragging"
+              (pointerdown)="onCoverPointerDown($event)"
+              (pointermove)="onCoverPointerMove($event)"
+              (pointerup)="onCoverPointerUp($event)"
+              (pointercancel)="onCoverPointerUp($event)"
+              (lostpointercapture)="onCoverPointerUp($event)">
               <label for="coverInput" class="change-cover-button">
-                <span aria-hidden="true">📷</span> Cambiar portada
+                <span class="bo-image" aria-hidden="true"></span> Cambiar portada
               </label>
               <input id="coverInput" type="file" accept="image/jpeg,image/png,image/webp" (change)="onCoverSelected($event)" hidden />
             </div>
+            @if (selectedCoverFile) {
+              <div class="cover-drag-hint">Pulsa y arrastra la imagen para ajustar el encuadre</div>
+            }
             <div class="edit-avatar-row">
               <div class="edit-avatar-preview">
                 @if (previewUrl || avatarUrl) {
                   <img [src]="previewUrl || avatarUrl" [alt]="'Avatar de ' + (displayName || username)" />
                 } @else { <span>{{ (displayName || username || 'A').charAt(0).toUpperCase() }}</span> }
-                <label for="avatarEditInput" class="change-avatar-button" title="Cambiar foto de perfil">📷</label>
+                <label for="avatarEditInput" class="change-avatar-button" title="Cambiar foto de perfil"><span class="bo-camera" aria-hidden="true"></span></label>
                 <input id="avatarEditInput" type="file" accept="image/jpeg,image/png,image/webp" (change)="onAvatarSelected($event)" hidden />
               </div>
               <div class="edit-image-hints">JPG, PNG o WEBP · Avatar hasta 2 MB · Portada hasta 5 MB</div>
@@ -67,14 +72,52 @@
               <textarea id="editBio" name="bio" [(ngModel)]="bio" rows="4" maxlength="300" placeholder="Cuéntale algo a la comunidad..."></textarea>
               <small>{{ bio.length }} / 300 caracteres</small>
             </div>
-            <div class="edit-field edit-field-full">
-              <label for="editInterests">Mis gustos e intereses</label>
-              <input id="editInterests" name="interestsText" [(ngModel)]="interestsText" placeholder="Series, libros, skincare, música..." />
-              <small>Separa tus intereses con comas.</small>
+            <div class="edit-field edit-field-full interests-edit-field">
+              <label>Mis gustos e intereses</label>
+              <p class="interests-edit-help">Elige las categorías que te gustan. Puedes seleccionar tantas como quieras.</p>
+              @if (loadingEditCategories) {
+                <div class="interests-loading">Cargando tus intereses...</div>
+              } @else {
+                <div class="edit-interests-grid">
+                  @for (category of categories; track category.id) {
+                    <button
+                      type="button"
+                      class="edit-interest-option"
+                      [class.selected]="isInterestSelected(category.id)"
+                      [attr.aria-pressed]="isInterestSelected(category.id)"
+                      [disabled]="saving"
+                      (click)="toggleInterest(category.id)"
+                    >
+                      <span class="edit-interest-icon" [attr.class]="'edit-interest-icon bo-' + getCategoryIcon(category.name)" aria-hidden="true"></span>
+                      <span class="edit-interest-name">{{ category.name }}</span>
+                    </button>
+                  } @empty {
+                    <p class="interests-loading">No se han encontrado categorías disponibles.</p>
+                  }
+                </div>
+                <small class="interests-selected-count">{{ selectedCategories.length }} categorías seleccionadas</small>
+              }
+            </div>
+            <div class="edit-field">
+              <label for="editEmail">Correo electrónico</label>
+              <input id="editEmail" [value]="email" readonly aria-readonly="true" />
+              <small>El correo se gestiona desde la configuración de tu cuenta.</small>
+            </div>
+            <div class="edit-field">
+              <label for="editBirthday">Fecha de cumpleaños</label>
+              <input id="editBirthday" name="birthdayDate" type="date" [(ngModel)]="birthdayDate" [disabled]="saving" />
             </div>
             <div class="edit-field edit-field-full">
               <label for="editWebsite">Enlace personal (opcional)</label>
               <input id="editWebsite" name="websiteUrl" type="url" [(ngModel)]="websiteUrl" placeholder="https://..." />
+            </div>
+            <div class="edit-field edit-field-full edit-privacy-field">
+              <label for="editPrivate">Privacidad del perfil</label>
+              <label class="edit-privacy-toggle">
+                <input id="editPrivate" name="isPrivate" type="checkbox" [(ngModel)]="isPrivate" />
+                <span>Configurar mi perfil como privado</span>
+              </label>
+              <small>Al activar esta opción, tu perfil se marcará como privado según las reglas de privacidad de la plataforma.</small>
             </div>
           </div>
 
@@ -117,30 +160,18 @@
           </div>
 
           <div class="profile-main-info">
-            <span class="profile-eyebrow">
-              {{ isOwnProfile ? 'TU ESPACIO ARMY' : 'COMUNIDAD BANGTAN OLÉ' }}
-            </span>
 
-            <h1>{{ displayName || username || 'ARMY' }}</h1>
+
+            <h1>{{ displayName || username  }}</h1>
 
             <p class="profile-username">
-              {{ username ? '@' + username : '@army' }}
+              {{ username ? '@' + username : 'Usuario' }}
             </p>
 
             <p class="profile-bio">
               {{ bio || 'Un pequeño rincón para compartir todo lo que te gusta 💜' }}
             </p>
 
-            @if (isOwnProfile && selectedFile) {
-              <button
-                type="button"
-                class="upload-button"
-                [disabled]="uploadingAvatar"
-                (click)="uploadAvatar()"
-              >
-                {{ uploadingAvatar ? 'Subiendo fotografía...' : 'Guardar fotografía' }}
-              </button>
-            }
           </div>
 
           @if (isOwnProfile) {
@@ -241,7 +272,7 @@
             <div class="panel-heading">
               <div>
                 <span class="panel-eyebrow">TU ACTIVIDAD</span>
-                <h2>{{ isOwnProfile ? 'Tu espacio personal' : 'Actividad ARMY' }}</h2>
+                <h2>{{ isOwnProfile ? 'Tu espacio personal' : 'Actividad' }}</h2>
               </div>
               <span class="panel-heading-icon">♡</span>
             </div>
@@ -269,13 +300,25 @@
                         }
                       </div>
                       <div class="activity-review-author">
-                        <strong>{{ displayName || username || 'ARMY' }}</strong>
+                        <strong>{{ displayName || username || 'Usuario' }}</strong>
                         <span>· {{ review.created_at | date:'d MMM yyyy' }}</span>
                       </div>
                       <span class="activity-review-type">{{ review.content_type === 'tv' ? 'Serie' : review.content_type === 'movie' ? 'Película' : review.content_type }}</span>
                     </div>
                     <button type="button" class="activity-review-content" (click)="openReviewedContent(review)">
-                      <span class="activity-review-title">{{ review.displayTitle }}</span>
+                      @if (review.displayImage) {
+                        <span class="activity-review-artwork">
+                          <img [src]="review.displayImage" [alt]="'Imagen de ' + review.displayTitle" loading="lazy" />
+                          <span class="activity-review-artwork-overlay"></span>
+                          <span class="activity-review-artwork-title">{{ review.displayTitle }}</span>
+                        </span>
+                      } @else {
+                        <span class="activity-review-artwork activity-review-artwork-fallback">
+                          <span class="activity-review-artwork-title">{{ review.displayTitle }}</span>
+                        </span>
+                      }
+                      <span class="activity-review-details">
+                        <span class="activity-review-title">{{ review.displayTitle }}</span>
                       <span class="activity-review-rating" [attr.aria-label]="'Valoración ' + review.rating + ' de 5'">
                         @for (star of [1, 2, 3, 4, 5]; track star) {
                           <span [class.filled]="star <= review.rating">★</span>
@@ -285,9 +328,10 @@
                       @if (review.review_text) {
                         <span class="activity-review-text">{{ review.review_text }}</span>
                       }
+                      </span>
                     </button>
                     <div class="activity-review-footer">
-                      <span>💜 Reseña compartida en Bangtan Olé</span>
+                      <span>Reseña compartida en la comunidad</span>
                       <button type="button" (click)="openReviewedContent(review)">Ver contenido →</button>
                     </div>
                   </article>
@@ -296,14 +340,14 @@
             } @else {
               <div class="activity-empty-state">
                 <div class="activity-placeholder-icon">💜</div>
-                <h3>{{ isOwnProfile ? 'Tu historia ARMY empieza aquí' : 'Todavía no hay actividad' }}</h3>
+                <h3>{{ isOwnProfile ? 'Tu espacio empieza aquí' : 'Todavía no hay actividad' }}</h3>
                 <p>
                   {{ isOwnProfile
                     ? 'Cuando publiques reseñas de tus series y películas favoritas, aparecerán aquí.'
                     : 'Esta persona todavía no ha compartido actividad.' }}
                 </p>
                 @if (isOwnProfile) {
-                  <button type="button" class="explore-button" (click)="goHome()">Explorar Bangtan Olé</button>
+                  <button type="button" class="explore-button" (click)="goHome()">Explorar contenido</button>
                 }
               </div>
             }
@@ -319,7 +363,7 @@
           <section class="profile-panel about-panel">
 
             <div class="sidebar-heading">
-              <span class="sidebar-icon">ⓘ</span>
+              <span class="sidebar-icon bo-alert-circle" aria-hidden="true"></span>
               <h2>Sobre mí</h2>
             </div>
 
@@ -330,15 +374,15 @@
             <div class="about-divider"></div>
 
             <div class="about-detail">
-              <span class="about-detail-icon">♡</span>
+              <span class="about-detail-icon bo-heart" aria-hidden="true"></span>
               <div>
                 <strong>Mi comunidad</strong>
-                <span>Bangtan Olé ARMY</span>
+                <span>Comunidad</span>
               </div>
             </div>
 
             <div class="about-detail">
-              <span class="about-detail-icon">✧</span>
+              <span class="about-detail-icon bo-users" aria-hidden="true"></span>
               <div>
                 <strong>Seguidores</strong>
                 <span>{{ followersCount }} personas</span>
@@ -346,7 +390,7 @@
             </div>
 
             <div class="about-detail">
-              <span class="about-detail-icon">⌁</span>
+              <span class="about-detail-icon bo-user-check" aria-hidden="true"></span>
               <div>
                 <strong>Siguiendo</strong>
                 <span>{{ followingCount }} personas</span>
@@ -354,7 +398,7 @@
             </div>
 
             <div class="about-detail">
-              <span class="about-detail-icon">⌖</span>
+              <span class="about-detail-icon bo-map" aria-hidden="true"></span>
               <div>
                 <strong>Ubicación</strong>
                 <span>{{ location || country || 'Sin indicar' }}</span>
@@ -362,9 +406,9 @@
             </div>
 
             <div class="about-detail">
-              <span class="about-detail-icon">✧</span>
+              <span class="about-detail-icon bo-star" aria-hidden="true"></span>
               <div>
-                <strong>En Bangtan Olé desde</strong>
+                <strong>En la comunidad desde</strong>
                 <span>{{ profile.created_at | date:'MMMM yyyy' }}</span>
               </div>
             </div>
@@ -383,8 +427,8 @@
           <section class="profile-panel friends-panel">
             <div class="friends-heading">
               <div class="friends-title">
-                <span class="friends-icon" aria-hidden="true">♧</span>
-                <h2>Amigas ({{ mutualFriends.length }})</h2>
+                <span class="friends-icon bo-users" aria-hidden="true"></span>
+                <h2>Conexiones ({{ mutualFriends.length }})</h2>
               </div>
               <button
                 type="button"
@@ -413,7 +457,7 @@
                       }
                       <span class="friend-status" aria-label="Seguimiento mutuo"></span>
                     </span>
-                    <span class="friend-name">{{ person.display_name || person.username || 'ARMY' }}</span>
+                    <span class="friend-name">{{ person.display_name || person.username || 'Usuario' }}</span>
                   </button>
                 }
               </div>
@@ -437,15 +481,15 @@
             class="social-list-section"
             role="dialog"
             aria-modal="true"
-            [attr.aria-label]="socialListType === 'followers' ? 'Lista de seguidores' : socialListType === 'following' ? 'Lista de seguidos' : 'Lista de amigas'"
+            [attr.aria-label]="socialListType === 'followers' ? 'Lista de seguidores' : socialListType === 'following' ? 'Lista de seguidos' : 'Lista de conexiones'"
             (click)="$event.stopPropagation()"
           >
 
             <div class="social-list-header">
               <div>
-                <span class="panel-eyebrow">BANGTAN OLÉ</span>
+                <span class="panel-eyebrow">COMUNIDAD</span>
                 <h2>{{ socialListType === 'followers' ? 'Seguidores' : socialListType === 'following' ? 'Seguidos' : 'Amigas' }}</h2>
-                <small>Personas que forman parte de tu rincón ARMY</small>
+                <small>Personas que forman parte de la comunidad</small>
               </div>
 
               <button
@@ -574,10 +618,10 @@
 
                           <div class="social-user-info">
                             <strong>
-                              {{ person.display_name || person.username || 'Usuario ARMY' }}
+                              {{ person.display_name || person.username || 'Usuario' }}
                             </strong>
                             <small>
-                              {{ person.username ? '@' + person.username : 'Comunidad Bangtan Olé' }}
+                              {{ person.username ? '@' + person.username : 'Perfil de la comunidad' }}
                             </small>
                           </div>
                         </button>

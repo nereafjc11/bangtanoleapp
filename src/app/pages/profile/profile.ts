@@ -12,6 +12,8 @@ import { AvatarService } from '../../services/avatar.service';
 import { TmdbService } from '../../services/tmdb.service';
 import { CommunityCatalogService } from '../../services/community-catalog.service';
 import { ReviewsService, ContentReview } from '../../services/reviews.service';
+import { CategoriesService, Category } from '../../services/categories.service';
+import { UserPreferencesService } from '../../services/user-preferences.service';
 
 type SocialListType = 'followers' | 'following' | 'friends';
 
@@ -33,6 +35,13 @@ export class Profile implements OnInit, OnDestroy {
   private router = inject(Router);
   private route = inject(ActivatedRoute);
   private changeDetector = inject(ChangeDetectorRef);
+  private categoriesService = inject(CategoriesService);
+  private preferencesService = inject(UserPreferencesService);
+
+  categories: Category[] = [];
+  selectedCategories: number[] = [];
+  loadingEditCategories = false;
+  birthdayDate = '';
 
   private routeSubscription?: Subscription;
   private loadRequest = 0;
@@ -44,7 +53,7 @@ export class Profile implements OnInit, OnDestroy {
 
   isOwnProfile = true;
 
-  myReviews: Array<ContentReview & { displayTitle: string }> = [];
+  myReviews: Array<ContentReview & { displayTitle: string; displayImage: string | null }> = [];
   reviewsLoading = false;
   reviewsError = '';
 
@@ -67,10 +76,18 @@ export class Profile implements OnInit, OnDestroy {
   coverUrl = '';
   selectedCoverFile: File | null = null;
   coverPreviewUrl = '';
+  coverPositionX = 50;
+  coverPositionY = 50;
+  coverZoom = 1;
+  coverZoomPercent = 100;
+  coverDragging = false;
+  private coverDragPointerId: number | null = null;
+  private coverDragLastX = 0;
+  private coverDragLastY = 0;
   uploadingCover = false;
   private editSnapshot: {
     username: string; displayName: string; bio: string; country: string;
-    location: string; interestsText: string; websiteUrl: string; isPrivate: boolean;
+    location: string; interestsText: string; websiteUrl: string; isPrivate: boolean; selectedCategories: number[]; birthdayDate: string;
   } | null = null;
 
   loading = false;
@@ -189,6 +206,7 @@ export class Profile implements OnInit, OnDestroy {
         this.location = this.profile.location ?? '';
         this.interestsText = (this.profile.interests ?? []).join(', ');
         this.websiteUrl = this.profile.website_url ?? '';
+        this.birthdayDate = this.profile.birthday_date ?? '';
         this.isPrivate = this.profile.is_private ?? false;
         this.avatarUrl = this.profile.avatar_url ?? '';
         this.coverUrl = this.profile.cover_url ?? '';
@@ -216,6 +234,7 @@ export class Profile implements OnInit, OnDestroy {
         this.location = this.profile.location ?? '';
         this.interestsText = (this.profile.interests ?? []).join(', ');
         this.websiteUrl = this.profile.website_url ?? '';
+        this.birthdayDate = this.profile.birthday_date ?? '';
         this.isPrivate = this.profile.is_private ?? false;
         this.avatarUrl = this.profile.avatar_url ?? '';
         this.coverUrl = this.profile.cover_url ?? '';
@@ -431,23 +450,95 @@ export class Profile implements OnInit, OnDestroy {
   // FOTOGRAFÍA DE PERFIL
   // =====================================
 
-  startEditProfile(): void {
-    if (!this.isOwnProfile) return;
+  async startEditProfile(): Promise<void> {
+    if (!this.isOwnProfile || this.loadingEditCategories || this.saving) return;
     this.editSnapshot = {
       username: this.username, displayName: this.displayName, bio: this.bio,
       country: this.country, location: this.location, interestsText: this.interestsText,
-      websiteUrl: this.websiteUrl, isPrivate: this.isPrivate
+      websiteUrl: this.websiteUrl, isPrivate: this.isPrivate,
+      selectedCategories: [...this.selectedCategories],
+      birthdayDate: this.birthdayDate
     };
     this.selectedFile = null;
     this.selectedCoverFile = null;
+    this.coverPositionX = 50;
+    this.coverPositionY = 50;
+    this.coverZoom = 1;
+    this.coverZoomPercent = 100;
     this.clearImagePreviews();
     this.showEditProfile = true;
     this.errorMessage = '';
     this.successMessage = '';
+    this.loadingEditCategories = true;
+    try {
+      const [categories, selected] = await Promise.all([
+        this.categoriesService.getActiveCategories(),
+        this.preferencesService.getMyPreferences()
+      ]);
+      this.categories = categories;
+      this.selectedCategories = [...selected];
+    } catch (error) {
+      console.error('Error al cargar los intereses para editar el perfil:', error);
+      this.errorMessage = 'No hemos podido cargar tus intereses. Puedes volver a intentarlo.';
+    } finally {
+      this.loadingEditCategories = false;
+      this.changeDetector.detectChanges();
+    }
+  }
+
+  getCategoryIcon(categoryName: string): string {
+    // Mantiene exactamente la misma correspondencia de BangtanIcons que el menú lateral.
+    const value = (categoryName ?? '')
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '');
+
+    if (value.includes('serie') || value.includes('pelicula') || value.includes('cine') || value.includes('film')) {
+      return 'film';
+    }
+
+    if (value.includes('skincare') || value.includes('belleza') || value.includes('beauty')) {
+      return 'star';
+    }
+
+    if (value.includes('musica') || value.includes('music')) {
+      return 'music';
+    }
+
+    if (value.includes('libro') || value.includes('lectura') || value.includes('book')) {
+      return 'book-open';
+    }
+
+    if (value.includes('moda') || value.includes('estilo') || value.includes('fashion') || value.includes('ropa')) {
+      return 'shopping-bag';
+    }
+
+    if (value.includes('otro') || value.includes('other') || value.includes('misc')) {
+      return 'grid';
+    }
+
+    if (value.includes('viaje') || value.includes('travel') || value.includes('turismo') || value.includes('aventura')) {
+      return 'map';
+    }
+
+    return 'compass';
+  }
+
+  toggleInterest(categoryId: number): void {
+    this.selectedCategories = this.selectedCategories.includes(categoryId)
+      ? this.selectedCategories.filter(id => id !== categoryId)
+      : [...this.selectedCategories, categoryId];
+    this.errorMessage = '';
+  }
+
+  isInterestSelected(categoryId: number): boolean {
+    return this.selectedCategories.includes(categoryId);
   }
 
   cancelEditProfile(): void {
+    if (this.saving) return;
     if (this.editSnapshot) Object.assign(this, this.editSnapshot);
+    this.selectedCategories = this.editSnapshot?.selectedCategories ? [...this.editSnapshot.selectedCategories] : this.selectedCategories;
     this.selectedFile = null;
     this.selectedCoverFile = null;
     this.clearImagePreviews();
@@ -481,11 +572,78 @@ export class Profile implements OnInit, OnDestroy {
     if (this.coverPreviewUrl) URL.revokeObjectURL(this.coverPreviewUrl);
     this.selectedCoverFile = file;
     this.coverPreviewUrl = URL.createObjectURL(file);
+    this.coverPositionX = 50;
+    this.coverPositionY = 50;
+    this.coverZoom = 1;
+    this.coverZoomPercent = 100;
     this.errorMessage = '';
   }
 
+  onCoverPointerDown(event: PointerEvent): void {
+    if (!this.selectedCoverFile || (event.target as HTMLElement).closest('button, label, input')) return;
+    const element = event.currentTarget as HTMLElement;
+    this.coverDragging = true;
+    this.coverDragPointerId = event.pointerId;
+    this.coverDragLastX = event.clientX;
+    this.coverDragLastY = event.clientY;
+    element.setPointerCapture(event.pointerId);
+    event.preventDefault();
+  }
+
+  onCoverPointerMove(event: PointerEvent): void {
+    if (!this.coverDragging || this.coverDragPointerId !== event.pointerId) return;
+    const element = event.currentTarget as HTMLElement;
+    const deltaX = event.clientX - this.coverDragLastX;
+    const deltaY = event.clientY - this.coverDragLastY;
+    this.coverDragLastX = event.clientX;
+    this.coverDragLastY = event.clientY;
+    this.coverPositionX = Math.max(0, Math.min(100, this.coverPositionX - (deltaX / Math.max(1, element.clientWidth)) * 100));
+    this.coverPositionY = Math.max(0, Math.min(100, this.coverPositionY - (deltaY / Math.max(1, element.clientHeight)) * 100));
+  }
+
+  onCoverPointerUp(event: PointerEvent): void {
+    if (this.coverDragPointerId !== event.pointerId) return;
+    this.coverDragging = false;
+    this.coverDragPointerId = null;
+  }
+
+  private async createAdjustedCover(file: File): Promise<File> {
+    const image = new Image();
+    const objectUrl = URL.createObjectURL(file);
+    try {
+      await new Promise<void>((resolve, reject) => {
+        image.onload = () => resolve();
+        image.onerror = () => reject(new Error('No se pudo leer la imagen de portada.'));
+        image.src = objectUrl;
+      });
+
+      // Proporción de la portada que se muestra en el perfil.
+      const canvas = document.createElement('canvas');
+      const width = 1800;
+      const height = 320;
+      canvas.width = width;
+      canvas.height = height;
+      const baseScale = Math.max(width / image.naturalWidth, height / image.naturalHeight);
+      const scale = baseScale * this.coverZoom;
+      const drawWidth = image.naturalWidth * scale;
+      const drawHeight = image.naturalHeight * scale;
+      const x = (width - drawWidth) * (this.coverPositionX / 100);
+      const y = (height - drawHeight) * (this.coverPositionY / 100);
+      const context = canvas.getContext('2d');
+      if (!context) throw new Error('No se pudo preparar el encuadre de portada.');
+      context.drawImage(image, x, y, drawWidth, drawHeight);
+      const blob = await new Promise<Blob>((resolve, reject) => {
+        canvas.toBlob(result => result ? resolve(result) : reject(new Error('No se pudo recortar la portada.')), file.type || 'image/jpeg', 0.92);
+      });
+      const extension = file.name.includes('.') ? file.name.split('.').pop() : 'jpg';
+      return new File([blob], `cover-adjusted.${extension}`, { type: blob.type });
+    } finally {
+      URL.revokeObjectURL(objectUrl);
+    }
+  }
+
   onAvatarSelected(event: Event): void {
-    if (!this.isOwnProfile) return;
+    if (!this.isOwnProfile || !this.showEditProfile || this.saving) return;
 
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0];
@@ -567,6 +725,7 @@ export class Profile implements OnInit, OnDestroy {
               : review.content_type === 'movie'
                 ? 'Película'
                 : review.content_type;
+          let displayImage: string | null = null;
 
           try {
             if (review.content_source === 'tmdb') {
@@ -574,15 +733,27 @@ export class Profile implements OnInit, OnDestroy {
 
               const content = await this.tmdb.getDetails(Number(review.content_id), tmdbType);
               displayTitle = content.title || content.name || displayTitle;
+              const imagePath = content.backdrop_path || content.poster_path;
+              displayImage = imagePath
+                ? `https://image.tmdb.org/t/p/w780${imagePath}`
+                : null;
             } else {
               const content = await this.communityCatalog.getById(review.content_id);
-              displayTitle = content?.title || displayTitle;
+              const item = content as any;
+              displayTitle = item?.title || displayTitle;
+              displayImage =
+                item?.backdrop_url ||
+                item?.cover_url ||
+                item?.poster_url ||
+                item?.image_url ||
+                (item?.backdrop_path ? `https://image.tmdb.org/t/p/w780${item.backdrop_path}` : null) ||
+                (item?.poster_path ? `https://image.tmdb.org/t/p/w500${item.poster_path}` : null);
             }
           } catch (error) {
             console.warn('No se pudo recuperar el título de una reseña:', error);
           }
 
-          return { ...review, displayTitle };
+          return { ...review, displayTitle, displayImage };
         }),
       );
     } catch (error) {
@@ -608,57 +779,89 @@ export class Profile implements OnInit, OnDestroy {
   // =====================================
 
   async saveProfile(): Promise<void> {
-    if (!this.isOwnProfile || !this.showEditProfile) return;
+    if (!this.isOwnProfile || !this.showEditProfile || this.saving) return;
+
+    const normalizedUsername = this.username.trim();
+    const normalizedDisplayName = this.displayName.trim();
+    const normalizedBio = this.bio.trim();
+    const normalizedCategories = [...new Set(this.selectedCategories)];
+    const normalizedInterests = this.categories
+      .filter(category => normalizedCategories.includes(category.id))
+      .map(category => category.name);
+
+    if (!normalizedUsername) {
+      this.errorMessage = 'El nombre de usuario es obligatorio.';
+      return;
+    }
+
+    if (!normalizedDisplayName) {
+      this.errorMessage = 'El nombre visible es obligatorio.';
+      return;
+    }
+
+    if (this.websiteUrl.trim() && !/^https?:\/\//i.test(this.websiteUrl.trim())) {
+      this.errorMessage = 'La página web debe comenzar por https:// o http://.';
+      return;
+    }
 
     this.saving = true;
     this.errorMessage = '';
     this.successMessage = '';
 
     try {
-      let nextAvatarUrl = this.avatarUrl;
-      let nextCoverUrl = this.coverUrl;
+      // Primero subimos los archivos seleccionados. Las rutas de avatar y portada
+      // son independientes dentro del bucket, por lo que no se sobrescriben.
+      let nextAvatarUrl = this.avatarUrl || null;
+      let nextCoverUrl = this.coverUrl || null;
 
       if (this.selectedFile) {
         this.uploadingAvatar = true;
         nextAvatarUrl = await this.avatarService.uploadAvatar(this.selectedFile);
-        await this.profileService.updateAvatarUrl(nextAvatarUrl);
-        this.uploadingAvatar = false;
       }
 
       if (this.selectedCoverFile) {
         this.uploadingCover = true;
-        nextCoverUrl = await this.avatarService.uploadCover(this.selectedCoverFile);
-        await this.profileService.updateCoverUrl(nextCoverUrl);
-        this.uploadingCover = false;
+        const adjustedCover = await this.createAdjustedCover(this.selectedCoverFile);
+        nextCoverUrl = await this.avatarService.uploadCover(adjustedCover);
       }
 
+      // Las preferencias usan la misma tabla/servicio que el onboarding.
+      await this.preferencesService.saveMyPreferences(normalizedCategories);
+
+      // Guardamos los datos visibles del perfil y sus etiquetas de intereses.
       await this.profileService.updateMyProfile({
-        username: this.username.trim() || null,
-        display_name: this.displayName.trim() || null,
-        bio: this.bio.trim() || null,
-        cover_url: nextCoverUrl || null,
+        username: normalizedUsername,
+        display_name: normalizedDisplayName,
+        bio: normalizedBio || null,
+        avatar_url: nextAvatarUrl,
+        cover_url: nextCoverUrl,
         country: this.country.trim() || null,
         location: this.location.trim() || null,
-        interests: this.interestsText.split(',').map(value => value.trim()).filter(Boolean),
+        interests: normalizedInterests,
         website_url: this.websiteUrl.trim() || null,
-        is_private: this.isPrivate
+        is_private: this.isPrivate,
+        birthday_date: this.birthdayDate || null
       });
 
-      this.avatarUrl = nextAvatarUrl;
-      this.coverUrl = nextCoverUrl;
+      this.selectedCategories = normalizedCategories;
+      this.interestsText = normalizedInterests.join(', ');
+      this.avatarUrl = nextAvatarUrl ?? '';
+      this.coverUrl = nextCoverUrl ?? '';
+
       if (this.profile) {
         this.profile = {
           ...this.profile,
-          username: this.username.trim() || null,
-          display_name: this.displayName.trim() || null,
-          bio: this.bio.trim() || null,
-          avatar_url: nextAvatarUrl || null,
-          cover_url: nextCoverUrl || null,
+          username: normalizedUsername,
+          display_name: normalizedDisplayName,
+          bio: normalizedBio || null,
+          avatar_url: nextAvatarUrl,
+          cover_url: nextCoverUrl,
           country: this.country.trim() || null,
           location: this.location.trim() || null,
-          interests: this.interestsText.split(',').map(value => value.trim()).filter(Boolean),
+          interests: normalizedInterests,
           website_url: this.websiteUrl.trim() || null,
-          is_private: this.isPrivate
+          is_private: this.isPrivate,
+        birthday_date: this.birthdayDate || null
         };
       }
 
@@ -670,7 +873,7 @@ export class Profile implements OnInit, OnDestroy {
       this.successMessage = '¡Tu perfil se ha actualizado correctamente!';
     } catch (error) {
       console.error('Error al guardar el perfil:', error);
-      this.errorMessage = 'No hemos podido guardar todos los cambios. Comprueba la conexión e inténtalo de nuevo.';
+      this.errorMessage = 'No hemos podido guardar todos los cambios. Comprueba la conexión y los permisos de Storage e inténtalo de nuevo.';
     } finally {
       this.saving = false;
       this.uploadingAvatar = false;
